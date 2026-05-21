@@ -67,7 +67,8 @@ export const action = async ({ request }) => {
           name: "Profile",
           type: "$app:profile",
           access: {
-            admin: "MERCHANT_READ_WRITE"
+            admin: "MERCHANT_READ_WRITE",
+            storefront: "PUBLIC_READ",
           },
           fieldDefinitions: [
             {

@@ -1,0 +1,19 @@
+{
+  "form_builder": {
+    "name": "Form Builder",
+    "settings": {
+      "form_id": {
+        "label": "Form ID",
+        "info": "Paste the Form ID from the Form Builder app"
+      }
+    }
+  },
+  "ratings": {
+    "stars": {
+      "label": "Ratings"
+    },
+    "home": {
+      "recommendationText": "Recommended Product!"
+    }
+  }
+}

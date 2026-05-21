@@ -1,0 +1,32 @@
+{% if block.settings.form_id != blank %}
+  <div
+    class="form-builder-embed"
+    data-form-builder
+    data-form-id="{{ block.settings.form_id | escape }}"
+    data-proxy-url="/apps/form-builder/forms/{{ block.settings.form_id | escape }}"
+    {{ block.shopify_attributes }}
+  >
+    <p class="form-builder-embed__loading">Loading form…</p>
+  </div>
+  {{ 'form-embed.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'form-embed.js' | asset_url }}" defer></script>
+{% else %}
+  <div class="form-builder-embed form-builder-embed--empty" {{ block.shopify_attributes }}>
+    <p>Add your Form ID from the Form Builder app.</p>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Form Builder",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "form_id",
+      "label": "Form ID",
+      "info": "Paste the Form ID from Form Builder (e.g. form-1dec0c58-533b-48be-8151-cfb6c0157118)"
+    }
+  ]
+}
+{% endschema %}

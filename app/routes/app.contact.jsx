@@ -1,7 +1,7 @@
 import { useLoaderData } from "react-router";
 import FormBuilder from "../components/form-builder/FormBuilder";
 import { saveFormAction } from "../components/form-builder/save-form-action.server";
-import { wholesaleFormConfig } from "../components/form-builder/form-configs";
+import { contactFormConfig } from "../components/form-builder/form-configs";
 import { authenticate } from "../shopify.server";
 import { loadFormForEdit } from "../utils/load-form.server";
 
@@ -22,7 +22,7 @@ export const loader = async ({ request }) => {
 
 export const action = saveFormAction;
 
-export default function WholesaleForm() {
+export default function ContactForm() {
     const { existingForm } = useLoaderData();
-    return <FormBuilder config={wholesaleFormConfig} existingForm={existingForm} />;
+    return <FormBuilder config={contactFormConfig} existingForm={existingForm} />;
 }

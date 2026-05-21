@@ -1,5 +1,17 @@
 import { useLoaderData, useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
+import { getCategoryDisplay, getEditorPathForCategory, parseFormCategory } from "../utils/form-category";
+
+function getFieldValue(fields, key) {
+    return fields?.find((f) => f.key === key)?.value ?? null;
+}
+
+function fieldsToRecord(fields) {
+    return (fields || []).reduce((acc, { key, value }) => {
+        acc[key] = value;
+        return acc;
+    }, {});
+}
 
 export const loader = async ({ request }) => {
     const { admin } = await authenticate.admin(request);
@@ -14,7 +26,6 @@ export const loader = async ({ request }) => {
                     nodes {
                         id
                         handle
-                        type
                         updatedAt
                         fields {
                             key
@@ -26,17 +37,30 @@ export const loader = async ({ request }) => {
         `);
 
         const json = await response.json();
+
+        if (json.errors?.length) {
+            throw new Error(json.errors.map((e) => e.message).join(", "));
+        }
+
         const nodes = json.data?.metaobjects?.nodes || [];
 
-        forms = nodes.map(node => ({
-            id: node.id,
-            handle: node.handle,
-            type: node.type,
-            updatedAt: node.updatedAt,
-            name: node.fields.find(f => f.key === "full_name")?.value || "Untitled Form",
-            role: node.fields.find(f => f.key === "role")?.value || "—",
-            active: node.fields.find(f => f.key === "active")?.value === "true",
-        }));
+        forms = nodes.map((node) => {
+            const allFields = fieldsToRecord(node.fields);
+
+            return {
+                id: node.id,
+                formId: node.handle,
+                createdAt: node.updatedAt,
+                // All metaobject fields (full_name, email, role, bio, active, rating, …)
+                fields: allFields,
+                // Table columns only
+                name: getFieldValue(node.fields, "full_name") || "Untitled Form",
+                category: parseFormCategory(
+                    allFields.bio,
+                    allFields.role
+                ),
+            };
+        });
     } catch (err) {
         error = err.message;
         console.error("Error fetching forms:", err);
@@ -56,9 +80,6 @@ const Forms = () => {
             timeStyle: "short",
         });
     };
-
-    // Extract short ID from handle for display
-    const shortId = (handle) => handle?.length > 20 ? handle.slice(0, 22) + "…" : handle;
 
     return (
         <s-page heading="Forms">
@@ -118,9 +139,8 @@ const Forms = () => {
                             <thead>
                                 <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
                                     <th style={{ padding: "12px 20px", fontWeight: "600", color: "#6b7280", textTransform: "uppercase", fontSize: "11px", letterSpacing: "0.5px" }}>Form Name</th>
-                                    <th style={{ padding: "12px 20px", fontWeight: "600", color: "#6b7280", textTransform: "uppercase", fontSize: "11px", letterSpacing: "0.5px" }}>Unique ID</th>
+                                    <th style={{ padding: "12px 20px", fontWeight: "600", color: "#6b7280", textTransform: "uppercase", fontSize: "11px", letterSpacing: "0.5px" }}>Form ID</th>
                                     <th style={{ padding: "12px 20px", fontWeight: "600", color: "#6b7280", textTransform: "uppercase", fontSize: "11px", letterSpacing: "0.5px" }}>Type</th>
-                                    <th style={{ padding: "12px 20px", fontWeight: "600", color: "#6b7280", textTransform: "uppercase", fontSize: "11px", letterSpacing: "0.5px" }}>Status</th>
                                     <th style={{ padding: "12px 20px", fontWeight: "600", color: "#6b7280", textTransform: "uppercase", fontSize: "11px", letterSpacing: "0.5px" }}>Last Updated</th>
                                 </tr>
                             </thead>
@@ -128,7 +148,11 @@ const Forms = () => {
                                 {forms.map((form, i) => (
                                     <tr
                                         key={form.id}
-                                        onClick={() => navigate(`/app/form-published/${form.handle}?title=${encodeURIComponent(form.name)}`)}
+                                        onClick={() =>
+                                            navigate(
+                                                `${getEditorPathForCategory(form.category)}?formId=${encodeURIComponent(form.formId)}`
+                                            )
+                                        }
                                         style={{
                                             borderBottom: i < forms.length - 1 ? "1px solid #f3f4f6" : "none",
                                             cursor: "pointer",
@@ -150,36 +174,36 @@ const Forms = () => {
                                             </div>
                                         </td>
 
-                                        {/* Unique ID */}
-                                        <td style={{ padding: "14px 20px" }}>
-                                            <code style={{ fontSize: "12px", color: "#4f46e5", background: "#ede9fe", padding: "3px 8px", borderRadius: "6px", fontFamily: "monospace", fontWeight: "600" }}>
-                                                {shortId(form.handle)}
+                                        {/* Form ID */}
+                                        <td style={{ padding: "14px 20px", maxWidth: "280px" }}>
+                                            <code style={{ fontSize: "12px", color: "#4f46e5", background: "#ede9fe", padding: "3px 8px", borderRadius: "6px", fontFamily: "monospace", fontWeight: "600", wordBreak: "break-all", display: "inline-block" }} title={form.formId}>
+                                                {form.formId || "—"}
                                             </code>
                                         </td>
 
-                                        {/* Type */}
+                                        {/* Type (b2b / custom) */}
                                         <td style={{ padding: "14px 20px" }}>
-                                            <span style={{ background: "#f0fdf4", color: "#047857", borderRadius: "6px", padding: "3px 10px", fontSize: "12px", fontWeight: "600" }}>
-                                                {form.role}
-                                            </span>
+                                            {(() => {
+                                                const display = getCategoryDisplay(form.category);
+                                                return (
+                                                    <span style={{
+                                                        background: display.background,
+                                                        color: display.color,
+                                                        borderRadius: "6px",
+                                                        padding: "3px 10px",
+                                                        fontSize: "12px",
+                                                        fontWeight: "600",
+                                                        textTransform: "uppercase",
+                                                    }}>
+                                                        {display.label}
+                                                    </span>
+                                                );
+                                            })()}
                                         </td>
 
-                                        {/* Status */}
-                                        <td style={{ padding: "14px 20px" }}>
-                                            <span style={{
-                                                display: "inline-flex", alignItems: "center", gap: "5px",
-                                                background: form.active ? "#ecfdf5" : "#f3f4f6",
-                                                color: form.active ? "#047857" : "#6b7280",
-                                                borderRadius: "12px", padding: "3px 10px", fontSize: "12px", fontWeight: "600"
-                                            }}>
-                                                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: form.active ? "#10b981" : "#9ca3af", display: "inline-block" }} />
-                                                {form.active ? "Active" : "Inactive"}
-                                            </span>
-                                        </td>
-
-                                        {/* Last Updated */}
+                                        {/* Created At */}
                                         <td style={{ padding: "14px 20px", color: "#6b7280" }}>
-                                            {formatDate(form.updatedAt)}
+                                            {formatDate(form.createdAt)}
                                         </td>
                                     </tr>
                                 ))}

@@ -13,8 +13,25 @@ export const loader = async ({ request, params }) => {
     let savedFields = [];
 
     try {
-        const response = await admin.graphql(`
-            query GetFormMetaobject($handle: MetaobjectHandleInput!) {
+        const isGid = formId.startsWith("gid://");
+
+        const response = await admin.graphql(
+            isGid
+                ? `
+            query GetFormMetaobjectById($id: ID!) {
+                metaobject(id: $id) {
+                    id
+                    handle
+                    type
+                    fields {
+                        key
+                        value
+                    }
+                }
+            }
+        `
+                : `
+            query GetFormMetaobjectByHandle($handle: MetaobjectHandleInput!) {
                 metaobjectByHandle(handle: $handle) {
                     id
                     handle
@@ -25,14 +42,18 @@ export const loader = async ({ request, params }) => {
                     }
                 }
             }
-        `, {
-            variables: {
-                handle: { type: "$app:profile", handle: formId }
+        `,
+            {
+                variables: isGid
+                    ? { id: formId }
+                    : { handle: { type: "$app:profile", handle: formId } },
             }
-        });
+        );
 
         const json = await response.json();
-        metaobject = json.data?.metaobjectByHandle || null;
+        metaobject = isGid
+            ? json.data?.metaobject || null
+            : json.data?.metaobjectByHandle || null;
 
         if (metaobject) {
             const bioField = metaobject.fields.find(f => f.key === "bio");
@@ -126,8 +147,20 @@ export default function FormPublished() {
                             </button>
                         </div>
                         <p style={{ margin: "14px 0 0", fontSize: "13px", color: "#6b7280", lineHeight: "1.6" }}>
-                            This ID uniquely identifies your form in Shopify metaobjects. Use it to embed the form on your storefront or configure automations.
+                            This ID uniquely identifies your form in Shopify metaobjects.
                         </p>
+                        <div style={{ marginTop: "16px", padding: "14px 16px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px" }}>
+                            <p style={{ margin: "0 0 8px", fontSize: "13px", fontWeight: "700", color: "#166534" }}>Show on your storefront</p>
+                            <ol style={{ margin: 0, paddingLeft: "18px", fontSize: "13px", color: "#374151", lineHeight: "1.7" }}>
+                                <li>Online Store → Customize theme</li>
+                                <li>Add block → <strong>Form Builder</strong></li>
+                                <li>Paste this Form ID into the block setting</li>
+                                <li>Save the theme</li>
+                            </ol>
+                            <p style={{ margin: "10px 0 0", fontSize: "12px", color: "#6b7280" }}>
+                                If you see a JSON error on the storefront, stop and restart <code>npm run dev</code>, then open the app once in admin so permissions update.
+                            </p>
+                        </div>
                     </div>
                 </s-grid-item>
 

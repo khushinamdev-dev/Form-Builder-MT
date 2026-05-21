@@ -1,0 +1,84 @@
+.form-builder-embed {
+  max-width: 560px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.form-builder-embed__loading,
+.form-builder-embed--empty {
+  padding: 16px;
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
+}
+
+.form-builder-embed__error {
+  padding: 14px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 14px;
+}
+
+.form-builder-embed__title {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.form-builder-embed__description {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.form-builder-embed__field {
+  margin-bottom: 16px;
+}
+
+.form-builder-embed__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-builder-embed__required {
+  color: #dc2626;
+}
+
+.form-builder-embed__input,
+.form-builder-embed__textarea,
+.form-builder-embed__select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-builder-embed__textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-builder-embed__submit {
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.form-builder-embed__submit:hover {
+  opacity: 0.92;
+}

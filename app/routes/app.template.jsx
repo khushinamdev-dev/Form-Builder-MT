@@ -7,7 +7,7 @@ const templatesData = [
         title: "Contact Us Form",
         description: "Captures basic customer details like name, email, phone, and address",
         category: "custom",
-        path: "/app/contactUsTemp",
+        path: "/app/contact",
         buttonText: "Contact Us",
     },
     {
@@ -219,7 +219,13 @@ const Templates = () => {
                                 </s-box>
                                 <s-stack padding="base" gap="base">
                                     <s-text>{template.description}</s-text>
-                                    <s-button onClick={() => navigate(template.path)}>
+                                    <s-button
+                                        onClick={() =>
+                                            navigate(
+                                                `${template.path}?category=${template.category}`
+                                            )
+                                        }
+                                    >
                                         {template.buttonText}
                                     </s-button>
                                 </s-stack>
