@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLoaderData, useNavigate } from "react-router";
 import { authenticate } from "../shopify.server";
 import {
@@ -73,6 +74,14 @@ export const loader = async ({ request }) => {
 const Forms = () => {
   const { forms, error } = useLoaderData();
   const navigate = useNavigate();
+  const [selectedFilter, setSelectedFilter] = useState("All");
+
+  const filteredForms = forms.filter((form) => {
+    if (selectedFilter === "All") return true;
+    if (selectedFilter === "B2B") return form.category === "b2b";
+    if (selectedFilter === "Custom") return form.category === "custom";
+    return true;
+  });
 
   const formatDate = (isoString) => {
     if (!isoString) return "—";
@@ -97,7 +106,7 @@ const Forms = () => {
           </s-button>
           <s-heading>Forms</s-heading>
         </s-stack>
-        <s-button variant="primary" onClick={() => navigate("/app/template")}>
+        <s-button variant="primary" onClick={() => navigate("/app/create-form")}>
           Create Form
         </s-button>
       </s-stack>
@@ -146,16 +155,29 @@ const Forms = () => {
             direction="inline"
             justifyContent="space-between"
           >
-            <s-button-group>
-              <s-button slot="secondary-actions">All</s-button>
-              <s-button slot="secondary-actions">B2B</s-button>
-              <s-button slot="secondary-actions" tone="critical">
+            <div style={{ display: "flex", gap: "8px" }}>
+              <s-button
+                variant={selectedFilter === "All" ? "secondary" : "tertiary"}
+                onClick={() => setSelectedFilter("All")}
+              >
+                All
+              </s-button>
+              <s-button
+                variant={selectedFilter === "B2B" ? "secondary" : "tertiary"}
+                onClick={() => setSelectedFilter("B2B")}
+              >
+                B2B
+              </s-button>
+              <s-button
+                variant={selectedFilter === "Custom" ? "secondary" : "tertiary"}
+                onClick={() => setSelectedFilter("Custom")}
+              >
                 Custom
               </s-button>
-            </s-button-group>
+            </div>
 
             <s-stack>
-              <s-text>Total : {forms.length}</s-text>
+              <s-text>Total : {filteredForms.length}</s-text>
             </s-stack>
           </s-stack>
 
@@ -166,10 +188,11 @@ const Forms = () => {
                 <s-table-header>Form ID</s-table-header>
                 <s-table-header>Type</s-table-header>
                 <s-table-header>Last Updated</s-table-header>
+                <s-table-header>Submissions</s-table-header>
               </s-table-header-row>
 
               <s-table-body>
-                {forms.map((form) => {
+                {filteredForms.map((form) => {
                   const display = getCategoryDisplay(form.category);
 
                   return (
@@ -197,7 +220,67 @@ const Forms = () => {
                       </s-table-cell>
 
                       <s-table-cell>
-                        <s-badge>{form.formId || "—"}</s-badge>
+                        <div
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            flexWrap: "nowrap",
+                            verticalAlign: "middle",
+                          }}
+                        >
+                          <s-text>{form.formId || "—"}</s-text>
+                          {form.formId && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(form.formId);
+                                if (window.shopify && window.shopify.toast) {
+                                  window.shopify.toast.show("Form ID copied!");
+                                }
+                              }}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                padding: "4px",
+                                cursor: "pointer",
+                                color: "#6d7175",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderRadius: "4px",
+                                transition: "all 0.2s ease",
+                                margin: "0",
+                                outline: "none",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = "#eef0f1";
+                                e.currentTarget.style.color = "#008060";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "transparent";
+                                e.currentTarget.style.color = "#6d7175";
+                              }}
+                              title="Copy Form ID"
+                            >
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                style={{ display: "block" }}
+                              >
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
                       </s-table-cell>
 
                       <s-table-cell>
@@ -208,6 +291,35 @@ const Forms = () => {
                         <s-text tone="subdued">
                           {formatDate(form.createdAt)}
                         </s-text>
+                      </s-table-cell>
+
+                      <s-table-cell>
+                        <s-clickable
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/app/submissions?formName=${encodeURIComponent(form.name)}`);
+                          }}
+                        >
+                          <s-stack direction="inline" gap="small" alignItems="center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.0"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              style={{ verticalAlign: "middle", color: "#6b7280" }}
+                            >
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                              <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <s-text tone="subdued">View</s-text>
+                          </s-stack>
+                        </s-clickable>
                       </s-table-cell>
                     </s-table-row>
                   );

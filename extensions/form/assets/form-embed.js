@@ -7,19 +7,123 @@
       .replace(/"/g, "&quot;");
   }
 
-  function renderField(field) {
+  function getRatingSvg(type, filled, color, size = 32) {
+    const stroke = filled ? color : "#2e4a3f";
+    const fill = filled ? color : "none";
+    if (type === "heart") {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer; transition: all 0.15s ease;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>`;
+    } else if (type === "smile") {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer; transition: all 0.15s ease;"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></svg>`;
+    } else if (type === "thumb") {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer; transition: all 0.15s ease;"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" /></svg>`;
+    } else {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer; transition: all 0.15s ease;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>`;
+    }
+  }
+
+  function renderField(field, data) {
     const id = "fb-" + field.id;
     const required = field.required ? "required" : "";
+    const minLengthAttr = field.limitCharacters && field.minCharacters ? `minlength="${field.minCharacters}"` : "";
+    const maxLengthAttr = field.limitCharacters && field.maxCharacters ? `maxlength="${field.maxCharacters}"` : "";
+    const limits = `${minLengthAttr} ${maxLengthAttr}`;
     const reqMark = field.required
       ? ' <span class="form-builder-embed__required">*</span>'
       : "";
-    const label = `<label class="form-builder-embed__label" for="${id}">${escapeHtml(field.label)}${reqMark}</label>`;
+    const labelStyle = field.hideLabel ? 'style="display: none;"' : '';
+    const label = `<label class="form-builder-embed__label" for="${id}" ${labelStyle}>${escapeHtml(field.label)}${reqMark}</label>`;
     const placeholder = escapeHtml(field.placeholder || "");
 
     let input = "";
     switch (field.type) {
+      case "checkboxes": {
+        const opts = (field.options || ["Option 1", "Option 2"])
+          .map(
+            (o) =>
+              `<label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" name="${field.id}" value="${escapeHtml(o)}" ${required} /> ${escapeHtml(o)}</label>`
+          )
+          .join("");
+        input = `<div class="form-builder-embed__choices" style="display:flex; flex-direction:column; gap:4px; padding:4px 0;">${opts}</div>`;
+        break;
+      }
+      case "radio": {
+        const opts = (field.options || ["Option 1", "Option 2"])
+          .map(
+            (o) =>
+              `<label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; cursor:pointer;"><input type="radio" name="${field.id}" value="${escapeHtml(o)}" ${required} /> ${escapeHtml(o)}`
+          )
+          .join("");
+        input = `<div class="form-builder-embed__choices" style="display:flex; flex-direction:column; gap:4px; padding:4px 0;">${opts}</div>`;
+        break;
+      }
+      case "consent": {
+        const consentText = escapeHtml(field.placeholder || "I agree to the terms and conditions");
+        input = `<div class="form-builder-embed__consent" style="display:flex; align-items:center; gap:8px; padding:4px 0;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="${id}" name="${field.id}" value="yes" ${required} />
+            <span>${consentText}</span>
+          </label>
+        </div>`;
+        break;
+      }
+      case "rating": {
+        const iconType = field.ratingIcon || "star";
+        const primaryColor = (data && data.primaryColor) || "#008060";
+        const hasNumbers = !!field.showNumberUnderIcon;
+        const iconSize = iconType === "star" ? 34 : 32;
+        
+        let starsHtml = "";
+        for (let i = 1; i <= 5; i++) {
+          const numberHtml = hasNumbers ? `<span style="font-size: 11px; color: #6b7280; font-weight: 550; margin-top: 4px;">${i}</span>` : "";
+          starsHtml += `
+            <div class="form-builder-embed__rating-item" data-value="${i}" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; gap: 4px;">
+              <span class="form-builder-embed__rating-icon-container">${getRatingSvg(iconType, false, primaryColor, iconSize)}</span>
+              ${numberHtml}
+            </div>
+          `;
+        }
+        
+        input = `
+          <div class="form-builder-embed__rating-container" data-field-id="${field.id}" data-icon-type="${iconType}" data-color="${primaryColor}" data-size="${iconSize}" style="display: flex; gap: 14px; align-items: center; padding: 6px 0; margin-top: 2px;">
+            ${starsHtml}
+            <input type="hidden" id="${id}" name="${field.id}" value="" ${required} />
+          </div>
+        `;
+        break;
+      }
+      case "feedback": {
+        const hasNumbers = !!field.showNumberUnderIcon;
+        const emojis = [
+          { emoji: "😠", label: "Very Bad" },
+          { emoji: "🙁", label: "Bad" },
+          { emoji: "😐", label: "Neutral" },
+          { emoji: "🙂", label: "Good" },
+          { emoji: "😄", label: "Excellent" }
+        ];
+        
+        let emojisHtml = "";
+        emojis.forEach((item, idx) => {
+          const val = idx + 1;
+          const numberHtml = hasNumbers ? `<span class="form-builder-embed__feedback-number" style="font-size: 11px; color: #6b7280; font-weight: 550; margin-top: 4px; transition: all 0.2s ease;">${val}</span>` : "";
+          emojisHtml += `
+            <div class="form-builder-embed__feedback-item" data-value="${val}" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; gap: 4px; filter: grayscale(100%); opacity: 0.4; transition: all 0.2s ease; transform: scale(1);">
+              <span style="font-size: 32px; line-height: 1;">${item.emoji}</span>
+              ${numberHtml}
+            </div>
+          `;
+        });
+        
+        input = `
+          <div class="form-builder-embed__feedback-container" data-field-id="${field.id}" style="display: flex; gap: 18px; align-items: center; padding: 6px 0; margin-top: 2px;">
+            ${emojisHtml}
+            <input type="hidden" id="${id}" name="${field.id}" value="" ${required} />
+          </div>
+        `;
+        break;
+      }
+      
       case "textarea":
-        input = `<textarea class="form-builder-embed__textarea" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required}></textarea>`;
+        input = `<textarea class="form-builder-embed__textarea" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} ${limits}></textarea>`;
         break;
       case "select":
       case "dropdown": {
@@ -33,14 +137,14 @@
         break;
       }
       case "email":
-        input = `<input class="form-builder-embed__input" type="email" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} />`;
+        input = `<input class="form-builder-embed__input" type="email" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} ${limits} />`;
         break;
       case "tel":
       case "phone":
-        input = `<input class="form-builder-embed__input" type="tel" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} />`;
+        input = `<input class="form-builder-embed__input" type="tel" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} ${limits} />`;
         break;
       case "url":
-        input = `<input class="form-builder-embed__input" type="url" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} />`;
+        input = `<input class="form-builder-embed__input" type="url" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} ${limits} />`;
         break;
       case "number":
         input = `<input class="form-builder-embed__input" type="number" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} />`;
@@ -49,29 +153,297 @@
         input = `<input class="form-builder-embed__input" type="file" id="${id}" name="${field.id}" ${required} />`;
         break;
       default:
-        input = `<input class="form-builder-embed__input" type="text" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} />`;
+        input = `<input class="form-builder-embed__input" type="text" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} ${limits} />`;
     }
 
     return `<div class="form-builder-embed__field">${label}${input}</div>`;
   }
 
-  function renderForm(container, data) {
+  function renderForm(container, data, proxyUrl) {
     const color = data.primaryColor || "#008060";
-    const fieldsHtml = (data.fields || []).map(renderField).join("");
+    const fieldsHtml = (data.fields || []).map(f => renderField(f, data)).join("");
 
-    container.innerHTML = `
-      <form class="form-builder-embed__form" novalidate>
-        <h2 class="form-builder-embed__title">${escapeHtml(data.title)}</h2>
-        ${data.description ? `<p class="form-builder-embed__description">${escapeHtml(data.description)}</p>` : ""}
-        ${fieldsHtml}
-        <button type="submit" class="form-builder-embed__submit" style="background:${escapeHtml(color)}">Submit</button>
-      </form>
+    const submitText = data.footerSubmitText || "Submit";
+    const showReset = !!data.footerShowReset;
+    const fullWidth = !!data.footerFullWidth;
+
+    let buttonsStyle = "display: flex; gap: 12px; margin-top: 16px; justify-content: center;";
+    if (fullWidth) {
+      buttonsStyle = "display: flex; flex-direction: column; gap: 8px; margin-top: 16px; width: 100%;";
+    }
+
+    const submitBtnStyle = `background:${escapeHtml(color)}; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; color: #fff; cursor: pointer; text-align: center; width: ${fullWidth ? "100%" : "auto"};`;
+    const resetBtnStyle = `background: #f6f6f7; border: 1px solid #d1d5db; color: #374151; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; text-align: center; width: ${fullWidth ? "100%" : "auto"};`;
+
+    const buttonsHtml = `
+      <div style="${buttonsStyle}">
+        ${showReset ? `<button type="reset" class="form-builder-embed__reset" style="${resetBtnStyle}">Reset</button>` : ""}
+        <button type="submit" class="form-builder-embed__submit" style="${submitBtnStyle}">${escapeHtml(submitText)}</button>
+      </div>
     `;
 
+    const footerTextHtml = data.footerText ? `<div class="form-builder-embed__footer-text" style="font-size: 13px; color: #6b7280; margin-top: 16px; line-height: 1.5;">${data.footerText}</div>` : "";
+
+    container.innerHTML = `
+      <div class="form-builder-embed__wrapper">
+        <form class="form-builder-embed__form" novalidate>
+          <h2 class="form-builder-embed__title">${escapeHtml(data.title)}</h2>
+          ${data.description ? `<p class="form-builder-embed__description">${escapeHtml(data.description)}</p>` : ""}
+          ${fieldsHtml}
+          ${footerTextHtml}
+          ${buttonsHtml}
+        </form>
+      </div>
+      <div class="form-builder-embed__success" style="display: none; text-align: center; padding: 40px 20px; border: 1px solid #e2f1e8; background: #fbfdfc; border-radius: 8px; color: #008060; margin: 0 auto; max-width: 600px;">
+        <h3 style="margin-top:0; font-size: 20px; font-weight: 600;">${escapeHtml(data.successTitle || "Thank you!")}</h3>
+        <p style="color: #6d7175; margin-bottom: 0;">${data.successMessage || "Your submission has been received successfully."}</p>
+      </div>
+    `;
+
+
+    // Add interactive rating handlers
+    container.querySelectorAll(".form-builder-embed__rating-container").forEach((ratingContainer) => {
+      const fieldId = ratingContainer.dataset.fieldId;
+      const iconType = ratingContainer.dataset.iconType;
+      const color = ratingContainer.dataset.color;
+      const iconSize = parseInt(ratingContainer.dataset.size || "32", 10);
+      const hiddenInput = ratingContainer.querySelector("input[type='hidden']");
+      const items = ratingContainer.querySelectorAll(".form-builder-embed__rating-item");
+      
+      items.forEach((item) => {
+        const itemVal = parseInt(item.dataset.value, 10);
+        
+        // On Click
+        item.addEventListener("click", () => {
+          hiddenInput.value = itemVal;
+          // Highlight active icons up to clicked value
+          items.forEach((subItem) => {
+            const subVal = parseInt(subItem.dataset.value, 10);
+            const containerSpan = subItem.querySelector(".form-builder-embed__rating-icon-container");
+            containerSpan.innerHTML = getRatingSvg(iconType, subVal <= itemVal, color, iconSize);
+          });
+        });
+        
+        // On Hover (Mouse Enter)
+        item.addEventListener("mouseenter", () => {
+          items.forEach((subItem) => {
+            const subVal = parseInt(subItem.dataset.value, 10);
+            const containerSpan = subItem.querySelector(".form-builder-embed__rating-icon-container");
+            containerSpan.innerHTML = getRatingSvg(iconType, subVal <= itemVal, color, iconSize);
+          });
+        });
+      });
+      
+      // On Mouse Leave: reset to currently selected value
+      ratingContainer.addEventListener("mouseleave", () => {
+        const currentVal = parseInt(hiddenInput.value || "0", 10);
+        items.forEach((subItem) => {
+          const subVal = parseInt(subItem.dataset.value, 10);
+          const containerSpan = subItem.querySelector(".form-builder-embed__rating-icon-container");
+          containerSpan.innerHTML = getRatingSvg(iconType, subVal <= currentVal, color, iconSize);
+        });
+      });
+    });
+
+    // Add interactive feedback handlers
+    container.querySelectorAll(".form-builder-embed__feedback-container").forEach((feedbackContainer) => {
+      const hiddenInput = feedbackContainer.querySelector("input[type='hidden']");
+      const items = feedbackContainer.querySelectorAll(".form-builder-embed__feedback-item");
+      
+      items.forEach((item) => {
+        const itemVal = parseInt(item.dataset.value, 10);
+        
+        // On Click
+        item.addEventListener("click", () => {
+          hiddenInput.value = itemVal;
+          // Update visual active state: only the selected emoji is colorful and scaled up
+          items.forEach((subItem) => {
+            const subVal = parseInt(subItem.dataset.value, 10);
+            if (subVal === itemVal) {
+              subItem.style.filter = "grayscale(0%)";
+              subItem.style.opacity = "1";
+              subItem.style.transform = "scale(1.2)";
+            } else {
+              subItem.style.filter = "grayscale(100%)";
+              subItem.style.opacity = "0.4";
+              subItem.style.transform = "scale(1)";
+            }
+          });
+        });
+        
+        // On Hover (Mouse Enter)
+        item.addEventListener("mouseenter", () => {
+          items.forEach((subItem) => {
+            const subVal = parseInt(subItem.dataset.value, 10);
+            if (subVal === itemVal) {
+              subItem.style.filter = "grayscale(0%)";
+              subItem.style.opacity = "1";
+              subItem.style.transform = "scale(1.2)";
+            } else {
+              subItem.style.filter = "grayscale(100%)";
+              subItem.style.opacity = "0.4";
+              subItem.style.transform = "scale(1)";
+            }
+          });
+        });
+      });
+      
+      // On Mouse Leave: reset to currently selected value
+      feedbackContainer.addEventListener("mouseleave", () => {
+        const currentVal = parseInt(hiddenInput.value || "0", 10);
+        items.forEach((subItem) => {
+          const subVal = parseInt(subItem.dataset.value, 10);
+          if (subVal === currentVal) {
+            subItem.style.filter = "grayscale(0%)";
+            subItem.style.opacity = "1";
+            subItem.style.transform = "scale(1.2)";
+          } else {
+            subItem.style.filter = "grayscale(100%)";
+            subItem.style.opacity = "0.4";
+            subItem.style.transform = "scale(1)";
+          }
+        });
+      });
+    });
     const form = container.querySelector("form");
-    form.addEventListener("submit", function (e) {
+    const wrapper = container.querySelector(".form-builder-embed__wrapper");
+    const successDiv = container.querySelector(".form-builder-embed__success");
+
+    form.addEventListener("submit", async function (e) {
       e.preventDefault();
-      alert("Thank you! Form submission will be connected soon.");
+      const btn = form.querySelector("button");
+      btn.disabled = true;
+      btn.innerText = "Submitting...";
+
+      // Validate fields before submitting since form has novalidate
+      let isValid = true;
+      const validationInputs = form.querySelectorAll("input, textarea, select");
+      for (const input of Array.from(validationInputs)) {
+        if (input.name) {
+          const fieldId = "fb-" + input.name;
+          const labelEl = form.querySelector(`label[for="${fieldId}"]`) || form.querySelector(`label[for="${input.id}"]`);
+          const labelText = labelEl ? labelEl.textContent.replace(/\s*\*$/, "").trim() : input.name;
+
+          // 1. Required validation
+          if (input.hasAttribute("required")) {
+            if (input.type === "checkbox" || input.type === "radio") {
+              const group = form.querySelectorAll(`[name="${input.name}"]`);
+              const oneChecked = Array.from(group).some(i => i.checked);
+              if (!oneChecked) {
+                alert(`${labelText} is required.`);
+                isValid = false;
+                break;
+              }
+            } else if (!input.value.trim()) {
+              alert(`${labelText} is required.`);
+              isValid = false;
+              break;
+            }
+          }
+
+          // 2. Character limit validation
+          const isTextInput = ["text", "textarea", "email", "url", "password", "tel"].includes(input.type || "text");
+          if (isTextInput && input.value.trim()) {
+            const minLen = input.getAttribute("minlength");
+            const maxLen = input.getAttribute("maxlength");
+            const valLen = input.value.length;
+
+            if (minLen && valLen < parseInt(minLen, 10)) {
+              alert(`${labelText} must be at least ${minLen} characters.`);
+              isValid = false;
+              break;
+            }
+            if (maxLen && valLen > parseInt(maxLen, 10)) {
+              alert(`${labelText} cannot exceed ${maxLen} characters.`);
+              isValid = false;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!isValid) {
+        btn.disabled = false;
+        btn.innerText = "Submit";
+        return;
+      }
+
+      // Get values of all fields inside the form mapped to their labels
+      const payload = {};
+      const inputs = form.querySelectorAll("input, textarea, select");
+      inputs.forEach((input) => {
+        if (input.name) {
+          const fieldId = "fb-" + input.name;
+          const labelEl = form.querySelector(`label[for="${fieldId}"]`) || form.querySelector(`label[for="${input.id}"]`);
+          const labelText = labelEl ? labelEl.textContent.replace(/\s*\*$/, "").trim() : input.name;
+
+          if (input.type === "checkbox") {
+            if (input.checked) {
+              if (payload[labelText]) {
+                if (Array.isArray(payload[labelText])) {
+                  payload[labelText].push(input.value);
+                } else {
+                  payload[labelText] = [payload[labelText], input.value];
+                }
+              } else {
+                payload[labelText] = input.value;
+              }
+            } else {
+              if (payload[labelText] === undefined) {
+                payload[labelText] = "";
+              }
+            }
+          } else if (input.type === "radio") {
+            if (input.checked) {
+              payload[labelText] = input.value;
+            }
+          } else {
+            payload[labelText] = input.value;
+          }
+        }
+      });
+
+      try {
+        const response = await fetch(proxyUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+          const action = data.afterSubmitAction || "successful";
+          if (action === "redirect" && data.redirectUrl) {
+            window.location.href = data.redirectUrl;
+          } else if (action === "clear") {
+            form.reset();
+            btn.disabled = false;
+            btn.innerText = "Submit";
+            
+            // Create premium, non-blocking floating toast message
+            const toast = document.createElement("div");
+            toast.style.cssText = "position: fixed; bottom: 24px; right: 24px; background: #202223; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: inherit;";
+            toast.innerText = data.successTitle || "Success!";
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+          } else if (action === "hide") {
+            wrapper.style.display = "none";
+          } else {
+            // successful
+            wrapper.style.display = "none";
+            successDiv.style.display = "block";
+          }
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          alert(errData.error || "There was an error submitting the form. Please try again.");
+          btn.disabled = false;
+          btn.innerText = "Submit";
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to submit form. Please check your connection.");
+        btn.disabled = false;
+        btn.innerText = "Submit";
+      }
     });
   }
 
@@ -128,7 +500,7 @@
             );
             return;
           }
-          renderForm(container, data);
+          renderForm(container, data, proxyUrl);
         })
         .catch(function (err) {
           showError(container, err.message || "Could not load form.");

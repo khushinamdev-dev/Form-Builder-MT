@@ -11,6 +11,32 @@ export async function saveFormAction({ request }) {
     const formRole = fd.get("formRole") || "Form";
     const formCategory = fd.get("formCategory") === "custom" ? "custom" : "b2b";
     const primaryColor = fd.get("primaryColor") || "#008060";
+    const borderRadius = fd.get("borderRadius") || "8px";
+    const fontFamily = fd.get("fontFamily") || "Inter, sans-serif";
+    const backgroundColor = fd.get("backgroundColor") || "#ffffff";
+    const titleColor = fd.get("titleColor") || "#202223";
+    const titleFontSize = fd.get("titleFontSize") || "26px";
+    const descriptionColor = fd.get("descriptionColor") || "#6d7175";
+    const descriptionFontSize = fd.get("descriptionFontSize") || "14px";
+    const labelColor = fd.get("labelColor") || "#202223";
+    const labelFontSize = fd.get("labelFontSize") || "14px";
+    const inputBgColor = fd.get("inputBgColor") || "#ffffff";
+    const inputTextColor = fd.get("inputTextColor") || "#202223";
+    const inputBorderColor = fd.get("inputBorderColor") || "#bbc3c9";
+    const btnTextColor = fd.get("btnTextColor") || "#ffffff";
+
+    const afterSubmitAction = fd.get("afterSubmitAction") || "successful";
+    const successTitle = fd.get("successTitle") || "Thanks for getting in touch!";
+    const successMessage = fd.get("successMessage") || "";
+    const redirectUrl = fd.get("redirectUrl") || "";
+    const customerTag = fd.get("customerTag") || "";
+    const footerText = fd.get("footerText") || "";
+    const footerPreviousText = fd.get("footerPreviousText") || "Previous";
+    const footerNextText = fd.get("footerNextText") || "Next";
+    const footerSubmitText = fd.get("footerSubmitText") || "Submit";
+    const footerShowReset = fd.get("footerShowReset") === "true";
+    const footerFullWidth = fd.get("footerFullWidth") === "true";
+
     let parsedFields = [];
     try {
         parsedFields = JSON.parse(fd.get("fields") || "[]");
@@ -18,6 +44,10 @@ export async function saveFormAction({ request }) {
     let parsedPages = [];
     try {
         parsedPages = JSON.parse(fd.get("pages") || "[]");
+    } catch (_) {}
+    let parsedRules = [];
+    try {
+        parsedRules = JSON.parse(fd.get("rules") || "[]");
     } catch (_) {}
 
     const bioContent = JSON.stringify({
@@ -28,6 +58,31 @@ export async function saveFormAction({ request }) {
         pageCount: parsedPages.length,
         pages: parsedPages,
         primaryColor,
+        borderRadius,
+        fontFamily,
+        backgroundColor,
+        titleColor,
+        titleFontSize,
+        descriptionColor,
+        descriptionFontSize,
+        labelColor,
+        labelFontSize,
+        inputBgColor,
+        inputTextColor,
+        inputBorderColor,
+        btnTextColor,
+        afterSubmitAction,
+        successTitle,
+        successMessage,
+        redirectUrl,
+        customerTag,
+        footerText,
+        footerPreviousText,
+        footerNextText,
+        footerSubmitText,
+        footerShowReset,
+        footerFullWidth,
+        rules: parsedRules,
         fields: parsedFields.map((f) => ({
             id: f.id,
             label: f.label,

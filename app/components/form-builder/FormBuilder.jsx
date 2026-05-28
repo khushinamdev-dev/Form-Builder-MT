@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   useNavigate,
   useSubmit,
@@ -7,7 +7,129 @@ import {
 } from "react-router";
 import Editor from "react-simple-wysiwyg";
 
+const countriesList = [
+  { code: "IN", name: "India", flag: "🇮🇳", dial: "+91" },
+  { code: "US", name: "United States", flag: "🇺🇸", dial: "+1" },
+  { code: "GB", name: "United Kingdom", flag: "🇬🇧", dial: "+44" },
+  { code: "CA", name: "Canada", flag: "🇨🇦", dial: "+1" },
+  { code: "AU", name: "Australia", flag: "🇦🇺", dial: "+61" },
+  { code: "NZ", name: "New Zealand", flag: "🇳🇿", dial: "+64" },
+  { code: "SG", name: "Singapore", flag: "🇸🇬", dial: "+65" },
+  { code: "AE", name: "United Arab Emirates", flag: "🇦🇪", dial: "+971" },
+  { code: "SA", name: "Saudi Arabia", flag: "🇸🇦", dial: "+966" },
+  { code: "ZA", name: "South Africa", flag: "🇿🇦", dial: "+27" },
+  { code: "DE", name: "Germany", flag: "🇩🇪", dial: "+49" },
+  { code: "FR", name: "France", flag: "🇫🇷", dial: "+33" },
+  { code: "IT", name: "Italy", flag: "🇮🇹", dial: "+39" },
+  { code: "ES", name: "Spain", flag: "🇪🇸", dial: "+34" },
+  { code: "JP", name: "Japan", flag: "🇯🇵", dial: "+81" },
+  { code: "CN", name: "China", flag: "🇨🇳", dial: "+86" },
+  { code: "BR", name: "Brazil", flag: "🇧🇷", dial: "+55" },
+  { code: "MX", name: "Mexico", flag: "🇲🇽", dial: "+52" },
+  { code: "RU", name: "Russia", flag: "🇷🇺", dial: "+7" },
+  { code: "NL", name: "Netherlands", flag: "🇳🇱", dial: "+31" },
+  { code: "CH", name: "Switzerland", flag: "🇨🇭", dial: "+41" },
+  { code: "SE", name: "Sweden", flag: "🇸🇪", dial: "+46" },
+  { code: "NO", name: "Norway", flag: "🇳🇴", dial: "+47" },
+  { code: "FI", name: "Finland", flag: "🇫🇮", dial: "+358" },
+  { code: "DK", name: "Denmark", flag: "🇩🇰", dial: "+45" },
+  { code: "IE", name: "Ireland", flag: "🇮🇪", dial: "+353" },
+  { code: "HK", name: "Hong Kong", flag: "🇭🇰", dial: "+852" },
+  { code: "MY", name: "Malaysia", flag: "🇲🇾", dial: "+60" },
+  { code: "TH", name: "Thailand", flag: "🇹🇭", dial: "+66" },
+  { code: "PH", name: "Philippines", flag: "🇵🇭", dial: "+63" },
+  { code: "ID", name: "Indonesia", flag: "🇮🇩", dial: "+62" },
+  { code: "VN", name: "Vietnam", flag: "🇻🇳", dial: "+84" },
+  { code: "KR", name: "South Korea", flag: "🇰🇷", dial: "+82" },
+  { code: "TR", name: "Turkey", flag: "🇹🇷", dial: "+90" },
+  { code: "PK", name: "Pakistan", flag: "🇵🇰", dial: "+92" },
+  { code: "BD", name: "Bangladesh", flag: "🇧🇩", dial: "+880" },
+  { code: "LK", name: "Sri Lanka", flag: "🇱🇰", dial: "+94" },
+  { code: "NP", name: "Nepal", flag: "🇳🇵", dial: "+977" },
+  { code: "EG", name: "Egypt", flag: "🇪🇬", dial: "+20" },
+  { code: "NG", name: "Nigeria", flag: "🇳🇬", dial: "+234" },
+  { code: "KE", name: "Kenya", flag: "🇰🇪", dial: "+254" },
+  { code: "AR", name: "Argentina", flag: "🇦🇷", dial: "+54" },
+  { code: "CL", name: "Chile", flag: "🇨🇱", dial: "+56" },
+  { code: "CO", name: "Colombia", flag: "🇨🇴", dial: "+57" },
+  { code: "PE", name: "Peru", flag: "🇵🇪", dial: "+51" },
+  { code: "PL", name: "Poland", flag: "🇵🇱", dial: "+48" },
+  { code: "UA", name: "Ukraine", flag: "🇺🇦", dial: "+380" },
+  { code: "RO", name: "Romania", flag: "🇷🇴", dial: "+40" },
+  { code: "GR", name: "Greece", flag: "🇬🇷", dial: "+30" },
+  { code: "PT", name: "Portugal", flag: "🇵🇹", dial: "+351" },
+  { code: "AT", name: "Austria", flag: "🇦🇹", dial: "+43" },
+  { code: "BE", name: "Belgium", flag: "🇧🇪", dial: "+32" },
+];
+
 // Helper function to return SVG icon for a field type
+const StarIcon = ({ filled, color = "#ffb400", strokeColor = "#2e4a3f", size = 32 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={filled ? color : "none"}
+    stroke={filled ? color : strokeColor}
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ transition: "all 0.15s ease", cursor: "pointer" }}
+  >
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  </svg>
+);
+
+const HeartIcon = ({ filled, color = "#d82c0d", strokeColor = "#2e4a3f", size = 32 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={filled ? color : "none"}
+    stroke={filled ? color : strokeColor}
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ transition: "all 0.15s ease", cursor: "pointer" }}
+  >
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+  </svg>
+);
+
+const SmileIcon = ({ filled, color = "#ffb400", strokeColor = "#2e4a3f", size = 32 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={filled ? color : "none"}
+    stroke={filled ? color : strokeColor}
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ transition: "all 0.15s ease", cursor: "pointer" }}
+  >
+    <circle cx="12" cy="12" r="10" />
+    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+    <line x1="9" y1="9" x2="9.01" y2="9" />
+    <line x1="15" y1="9" x2="15.01" y2="9" />
+  </svg>
+);
+
+const ThumbIcon = ({ filled, color = "#008060", strokeColor = "#2e4a3f", size = 32 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={filled ? color : "none"}
+    stroke={filled ? color : strokeColor}
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ transition: "all 0.15s ease", cursor: "pointer" }}
+  >
+    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+  </svg>
+);
+
 const getFieldIcon = (type) => {
   switch (type) {
     case "email":
@@ -226,6 +348,7 @@ const tabs = [
   { id: "appearance", label: "Appearance", icon: "paint-brush-round" },
   { id: "after-submit", label: "After submit", icon: "cursor" },
   { id: "mail", label: "Mail", icon: "email" },
+  { id: "rules", label: "Rules", icon: "filter" },
   { id: "settings", label: "Settings", icon: "settings" },
 ];
 
@@ -365,7 +488,7 @@ const elementCategories = [
     title: "Input",
     items: [
       { id: "url", label: "Url", icon: "🔗" },
-      { id: "date", label: "Date time", icon: "📅" },
+      { id: "date", label: "Date", icon: "📅" },
       { id: "file", label: "File upload", icon: "📎" },
       { id: "color", label: "Color picker", icon: "🎨" },
     ],
@@ -417,6 +540,38 @@ function generateFormId() {
   );
 }
 
+const isBusinessFieldInUse = (item, fields) => {
+  if (!item.singletonType) return false;
+
+  return fields.some((f) => {
+    // 1. Direct singletonType match
+    if (f.singletonType === item.singletonType) return true;
+
+    // 2. ID match fallbacks for initial B2B fields
+    if (item.singletonType === "biz-website" && (f.id === "website" || f.id === "biz-website" || f.type === "biz-website")) return true;
+    if (item.singletonType === "biz-address" && (f.id === "address" || f.id === "biz-address" || f.type === "biz-address")) return true;
+    if (item.singletonType === "biz-type" && (f.id === "businessType" || f.id === "biz-type" || f.type === "biz-type")) return true;
+    if (item.singletonType === "biz-tax-id" && (f.id === "taxId" || f.id === "biz-tax-id" || f.type === "biz-tax-id")) return true;
+    if (item.singletonType === "biz-tax-doc" && (f.id === "taxDoc" || f.id === "biz-tax-doc" || f.type === "biz-tax-doc")) return true;
+
+    // 3. Robust Label-based semantic match (helps for old/legacy custom forms)
+    const normLabel = (f.label || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const normItemLabel = (item.label || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    // Exact semantic label match (e.g. "company name" === "company name")
+    if (normLabel && normLabel === normItemLabel) return true;
+
+    // Substring checks for close matches
+    if (item.singletonType === "biz-company-name" && (normLabel.includes("companyname") || normLabel.includes("businessname"))) return true;
+    if (item.singletonType === "biz-company-email" && (normLabel.includes("businessemail") || normLabel.includes("companyemail"))) return true;
+    if (item.singletonType === "biz-company-phone" && (normLabel.includes("businessphone") || normLabel.includes("companyphone"))) return true;
+    if (item.singletonType === "biz-tax-id" && (normLabel.includes("taxid") || normLabel.includes("ein"))) return true;
+    if (item.singletonType === "biz-tax-doc" && (normLabel.includes("taxdoc") || normLabel.includes("taxdocument"))) return true;
+
+    return false;
+  });
+};
+
 export default function FormBuilder({ config, existingForm = null }) {
   const navigate = useNavigate();
   const submit = useSubmit();
@@ -424,17 +579,19 @@ export default function FormBuilder({ config, existingForm = null }) {
   const [searchParams] = useSearchParams();
   const isEditing = !!existingForm?.formId;
   const categoryParam = searchParams.get("category");
-  const formCategory =
+  const [formCategory, setFormCategory] = useState(() =>
     existingForm?.category === "custom" || existingForm?.category === "b2b"
       ? existingForm.category
       : categoryParam === "custom" || categoryParam === "b2b"
         ? categoryParam
-        : config.defaultCategory;
+        : config.defaultCategory,
+  );
 
   // Builder states
   const [fields, setFields] = useState(() =>
     existingForm?.fields?.length ? existingForm.fields : config.initialFields,
   );
+  const [previewRatings, setPreviewRatings] = useState({});
   const [pages, setPages] = useState(() =>
     existingForm?.pages?.length
       ? existingForm.pages
@@ -462,6 +619,24 @@ export default function FormBuilder({ config, existingForm = null }) {
   const [formDescription, setFormDescription] = useState(
     () => existingForm?.description || config.formDescription,
   );
+  const [footerText, setFooterText] = useState(
+    () => existingForm?.footerText || "",
+  );
+  const [footerPreviousText, setFooterPreviousText] = useState(
+    () => existingForm?.footerPreviousText || "Previous",
+  );
+  const [footerNextText, setFooterNextText] = useState(
+    () => existingForm?.footerNextText || "Next",
+  );
+  const [footerSubmitText, setFooterSubmitText] = useState(
+    () => existingForm?.footerSubmitText || "Submit",
+  );
+  const [footerShowReset, setFooterShowReset] = useState(
+    () => !!existingForm?.footerShowReset,
+  );
+  const [footerFullWidth, setFooterFullWidth] = useState(
+    () => !!existingForm?.footerFullWidth,
+  );
   const [bannerVisible, setBannerVisible] = useState(true);
   const [toastMessage, setToastMessage] = useState("");
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -470,18 +645,36 @@ export default function FormBuilder({ config, existingForm = null }) {
   const [primaryColor, setPrimaryColor] = useState(
     () => existingForm?.primaryColor || "#008060",
   );
-  const [borderRadius, setBorderRadius] = useState("8px");
-  const [fontFamily, setFontFamily] = useState("Inter, sans-serif");
-  const [backgroundColor, setBackgroundColor] = useState("#ffffff");
+  const [borderRadius, setBorderRadius] = useState(() => existingForm?.borderRadius || "8px");
+  const [fontFamily, setFontFamily] = useState(() => existingForm?.fontFamily || "Inter, sans-serif");
+  const [backgroundColor, setBackgroundColor] = useState(() => existingForm?.backgroundColor || "#ffffff");
+
+  const [titleColor, setTitleColor] = useState(() => existingForm?.titleColor || "#202223");
+  const [titleFontSize, setTitleFontSize] = useState(() => existingForm?.titleFontSize || "26px");
+  const [descriptionColor, setDescriptionColor] = useState(() => existingForm?.descriptionColor || "#6d7175");
+  const [descriptionFontSize, setDescriptionFontSize] = useState(() => existingForm?.descriptionFontSize || "14px");
+  const [labelColor, setLabelColor] = useState(() => existingForm?.labelColor || "#202223");
+  const [labelFontSize, setLabelFontSize] = useState(() => existingForm?.labelFontSize || "14px");
+  const [inputBgColor, setInputBgColor] = useState(() => existingForm?.inputBgColor || "#ffffff");
+  const [inputTextColor, setInputTextColor] = useState(() => existingForm?.inputTextColor || "#202223");
+  const [inputBorderColor, setInputBorderColor] = useState(() => existingForm?.inputBorderColor || "#bbc3c9");
+  const [btnTextColor, setBtnTextColor] = useState(() => existingForm?.btnTextColor || "#ffffff");
 
   // After Submit States
-  const [afterSubmitAction, setAfterSubmitAction] = useState("clear"); // "clear" | "redirect" | "hide"
+  const [afterSubmitAction, setAfterSubmitAction] = useState(
+    () => existingForm?.afterSubmitAction || "successful",
+  ); // "successful" | "clear" | "redirect" | "hide"
   const [successTitle, setSuccessTitle] = useState(
-    "Thanks for getting in touch!",
+    () => existingForm?.successTitle || "Thanks for getting in touch!",
   );
-  const [afterSubmitDiscount, setAfterSubmitDiscount] = useState("");
+  const [afterSubmitDiscount, setAfterSubmitDiscount] = useState(
+    () => existingForm?.afterSubmitDiscount || "",
+  );
   const [successMessage, setSuccessMessage] = useState(
-    "We appreciate you contacting us. One of our colleagues will get back in touch with you soon!<br/><br/>Have a great day!",
+    () => existingForm?.successMessage || "We appreciate you contacting us. One of our colleagues will get back in touch with you soon!<br/><br/>Have a great day!",
+  );
+  const [redirectUrl, setRedirectUrl] = useState(
+    () => existingForm?.redirectUrl || "",
   );
   const [formSubmitted, setFormSubmitted] = useState(false);
 
@@ -496,8 +689,19 @@ export default function FormBuilder({ config, existingForm = null }) {
   };
 
   // Integration States
-  const [customerTag, setCustomerTag] = useState(config.customerTag);
+  const [customerTag, setCustomerTag] = useState(
+    () => existingForm?.customerTag || config.customerTag || "",
+  );
   const [syncMetafields, setSyncMetafields] = useState(true);
+
+  // Rules States
+  const [rules, setRules] = useState(() => existingForm?.rules || []);
+  const [editingRuleId, setEditingRuleId] = useState(null);
+  const [ruleField, setRuleField] = useState("");
+  const [ruleCondition, setRuleCondition] = useState("empty"); // "empty" | "not_empty" | "equals" | "contains"
+  const [ruleValue, setRuleValue] = useState("");
+  const [ruleAction, setRuleAction] = useState("show"); // "show" | "hide" | "require" | "optional"
+  const [ruleTarget, setRuleTarget] = useState("");
 
   // Show Toast helper
   const triggerToast = (msg) => {
@@ -563,7 +767,8 @@ export default function FormBuilder({ config, existingForm = null }) {
   // Add Field — handles both regular types and singleton business fields
   const addField = (type, customLabel, singletonType) => {
     // Block re-adding a singleton business field that is already in the form
-    if (singletonType && fields.some((f) => f.singletonType === singletonType))
+    const itemDummy = { singletonType, label: customLabel };
+    if (singletonType && isBusinessFieldInUse(itemDummy, fields))
       return;
     const id = `field_${Date.now()}`;
     let label =
@@ -572,7 +777,9 @@ export default function FormBuilder({ config, existingForm = null }) {
     let placeholder = `Enter ${label.toLowerCase()}`;
     let options = undefined;
 
-    if (type === "select" || type === "dropdown") {
+    if (type === "consent") {
+      placeholder = "I agree to the terms and conditions";
+    } else if (type === "select" || type === "dropdown") {
       placeholder = "Select option...";
       options = ["Option 1", "Option 2", "Option 3"];
     } else if (
@@ -599,7 +806,7 @@ export default function FormBuilder({ config, existingForm = null }) {
       label = customLabel || "Range Slider";
       placeholder = "";
     } else if (type === "date") {
-      placeholder = "Select date & time";
+      placeholder = "Select date";
     } else if (type === "file") {
       placeholder = "";
     } else if (type === "color" || type === "color-swatch") {
@@ -670,8 +877,33 @@ export default function FormBuilder({ config, existingForm = null }) {
     data.append("formCategory", formCategory);
     data.append("formRole", config.formRole);
     data.append("primaryColor", primaryColor);
+    data.append("borderRadius", borderRadius);
+    data.append("fontFamily", fontFamily);
+    data.append("backgroundColor", backgroundColor);
+    data.append("titleColor", titleColor);
+    data.append("titleFontSize", titleFontSize);
+    data.append("descriptionColor", descriptionColor);
+    data.append("descriptionFontSize", descriptionFontSize);
+    data.append("labelColor", labelColor);
+    data.append("labelFontSize", labelFontSize);
+    data.append("inputBgColor", inputBgColor);
+    data.append("inputTextColor", inputTextColor);
+    data.append("inputBorderColor", inputBorderColor);
+    data.append("btnTextColor", btnTextColor);
     data.append("fields", JSON.stringify(fields));
     data.append("pages", JSON.stringify(pages));
+    data.append("afterSubmitAction", afterSubmitAction);
+    data.append("successTitle", successTitle);
+    data.append("successMessage", successMessage);
+    data.append("redirectUrl", redirectUrl);
+    data.append("customerTag", customerTag);
+    data.append("footerText", footerText);
+    data.append("footerPreviousText", footerPreviousText);
+    data.append("footerNextText", footerNextText);
+    data.append("footerSubmitText", footerSubmitText);
+    data.append("footerShowReset", footerShowReset ? "true" : "false");
+    data.append("footerFullWidth", footerFullWidth ? "true" : "false");
+    data.append("rules", JSON.stringify(rules));
     submit(data, { method: "post" });
   };
 
@@ -681,20 +913,192 @@ export default function FormBuilder({ config, existingForm = null }) {
   const handleFieldInput = () => {
     if (!hasUnsavedChanges) {
       setHasUnsavedChanges(true);
-      shopify.saveBar.show(saveBarId);
+      if (typeof window !== "undefined" && window.shopify) {
+        window.shopify.saveBar.show(saveBarId);
+      }
+    }
+  };
+
+  // Drag and Drop reordering state & handlers
+  const [draggedFieldId, setDraggedFieldId] = useState(null);
+  const isDragging = useRef(false);
+  const dragStartOrderRef = useRef("");
+  const fieldsRef = useRef(fields);
+
+  useEffect(() => {
+    fieldsRef.current = fields;
+  }, [fields]);
+
+  const handleDragStart = (e, fieldId) => {
+    isDragging.current = true;
+    dragStartOrderRef.current = fieldsRef.current.map((f) => f.id).join(",");
+    setDraggedFieldId(fieldId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e, targetFieldId) => {
+    e.preventDefault();
+    if (draggedFieldId === null || draggedFieldId === targetFieldId) return;
+
+    setFields((prevFields) => {
+      const draggedIndex = prevFields.findIndex((f) => f.id === draggedFieldId);
+      const targetIndex = prevFields.findIndex((f) => f.id === targetFieldId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return prevFields;
+
+      // We only reorder fields that are on the same page
+      const draggedField = prevFields[draggedIndex];
+      const targetField = prevFields[targetIndex];
+      if ((draggedField.page || 1) !== (targetField.page || 1)) return prevFields;
+
+      const updatedFields = [...prevFields];
+      const [removed] = updatedFields.splice(draggedIndex, 1);
+      updatedFields.splice(targetIndex, 0, removed);
+      return updatedFields;
+    });
+  };
+
+  const handleDragEnd = () => {
+    isDragging.current = false;
+    setDraggedFieldId(null);
+
+    // Only trigger the Save Bar if the field order actually changed
+    const currentOrder = fieldsRef.current.map((f) => f.id).join(",");
+    if (currentOrder !== dragStartOrderRef.current) {
+      handleFieldInput();
     }
   };
 
   const handleDiscard = () => {
     setHasUnsavedChanges(false);
-    shopify.saveBar.hide(saveBarId);
+    if (typeof window !== "undefined" && window.shopify) {
+      window.shopify.saveBar.hide(saveBarId);
+    }
+
+    // Reset all state variables to original loader/draft values
+    setFormName(existingForm?.formName || existingForm?.title || config.formTitle);
+    setFormHeaderTitle(existingForm?.headerTitle || existingForm?.title || config.formTitle);
+    setFormDescription(existingForm?.description || config.formDescription);
+    setFooterText(existingForm?.footerText || "");
+    setFooterPreviousText(existingForm?.footerPreviousText || "Previous");
+    setFooterNextText(existingForm?.footerNextText || "Next");
+    setFooterSubmitText(existingForm?.footerSubmitText || "Submit");
+    setFooterShowReset(!!existingForm?.footerShowReset);
+    setFooterFullWidth(!!existingForm?.footerFullWidth);
+    setFields(existingForm?.fields?.length ? existingForm.fields : config.initialFields);
+    setPages(existingForm?.pages?.length ? existingForm.pages : [{ id: 1, title: "Page 1" }]);
+
+    // Styling states reset
+    setPrimaryColor(existingForm?.primaryColor || "#008060");
+    setBorderRadius(existingForm?.borderRadius || "8px");
+    setFontFamily(existingForm?.fontFamily || "Inter, sans-serif");
+    setBackgroundColor(existingForm?.backgroundColor || "#ffffff");
+    setTitleColor(existingForm?.titleColor || "#202223");
+    setTitleFontSize(existingForm?.titleFontSize || "26px");
+    setDescriptionColor(existingForm?.descriptionColor || "#6d7175");
+    setDescriptionFontSize(existingForm?.descriptionFontSize || "14px");
+    setLabelColor(existingForm?.labelColor || "#202223");
+    setLabelFontSize(existingForm?.labelFontSize || "14px");
+    setInputBgColor(existingForm?.inputBgColor || "#ffffff");
+    setInputTextColor(existingForm?.inputTextColor || "#202223");
+    setInputBorderColor(existingForm?.inputBorderColor || "#bbc3c9");
+    setBtnTextColor(existingForm?.btnTextColor || "#ffffff");
+
+    // After submit states reset
+    setAfterSubmitAction(existingForm?.afterSubmitAction || "successful");
+    setSuccessTitle(existingForm?.successTitle || "Thanks for getting in touch!");
+    setAfterSubmitDiscount(existingForm?.afterSubmitDiscount || "");
+    setSuccessMessage(existingForm?.successMessage || "We appreciate you contacting us. One of our colleagues will get back in touch with you soon!<br/><br/>Have a great day!");
+    setRedirectUrl(existingForm?.redirectUrl || "");
+    setCustomerTag(existingForm?.customerTag || "");
+    setRules(existingForm?.rules || []);
+
+    triggerToast("Changes discarded");
   };
 
   const handleSave = async () => {
     triggerToast(config.saveToastMessage);
     setHasUnsavedChanges(false);
-    shopify.saveBar.hide(saveBarId);
+    if (typeof window !== "undefined" && window.shopify) {
+      window.shopify.saveBar.hide(saveBarId);
+    }
+    handleContinue();
   };
+
+  // Safe ref wrappers to avoid stale closure issues in document event listeners
+  const handleContinueRef = useRef(handleContinue);
+  const handleDiscardRef = useRef(handleDiscard);
+
+  useEffect(() => {
+    handleContinueRef.current = handleContinue;
+    handleDiscardRef.current = handleDiscard;
+  });
+
+  // Listen for Shopify Admin Save Bar native events
+  useEffect(() => {
+    const onSave = () => {
+      triggerToast(config.saveToastMessage);
+      handleContinueRef.current();
+    };
+    const onDiscard = () => {
+      handleDiscardRef.current();
+    };
+
+    document.addEventListener("shopify:save", onSave);
+    document.addEventListener("shopify:discard", onDiscard);
+
+    return () => {
+      document.removeEventListener("shopify:save", onSave);
+      document.removeEventListener("shopify:discard", onDiscard);
+    };
+  }, []);
+
+  // Monitor all state changes to trigger Shopify save bar
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    // Avoid triggering Save Bar during active dragging operations
+    if (isDragging.current) {
+      return;
+    }
+    handleFieldInput();
+  }, [
+    fields,
+    pages,
+    formName,
+    formHeaderTitle,
+    formDescription,
+    footerText,
+    footerPreviousText,
+    footerNextText,
+    footerSubmitText,
+    footerShowReset,
+    footerFullWidth,
+    primaryColor,
+    borderRadius,
+    fontFamily,
+    backgroundColor,
+    titleColor,
+    titleFontSize,
+    descriptionColor,
+    descriptionFontSize,
+    labelColor,
+    labelFontSize,
+    inputBgColor,
+    inputTextColor,
+    inputBorderColor,
+    btnTextColor,
+    afterSubmitAction,
+    successTitle,
+    afterSubmitDiscount,
+    successMessage,
+    redirectUrl,
+    customerTag,
+    rules,
+  ]);
   return (
     <s-page>
       {/* Top Header Bar using Spruce Stack */}
@@ -702,21 +1106,30 @@ export default function FormBuilder({ config, existingForm = null }) {
         direction="inline"
         justifyContent="space-between"
         alignItems="center"
-        padding="base"
+        padding="none none base none"
       >
-        <s-stack direction="inline" alignItems="center" gap="base">
+        <s-stack direction="inline" alignItems="center" padding="none" gap="base">
           <s-button
-            onClick={() => navigate(isEditing ? "/app/forms" : "/app/template")}
+            onClick={() => {
+              const isScratch = config.formRole === "Custom Form" || (typeof window !== "undefined" && window.location.pathname.includes("/scratch"));
+              if (isEditing) {
+                navigate("/app/forms");
+              } else if (isScratch) {
+                navigate("/app/create-form");
+              } else {
+                navigate("/app/template");
+              }
+            }}
           >
             <s-icon type="arrow-left"> </s-icon>
           </s-button>
           <s-stack gap="small">
             <s-heading>{config.pageHeading}</s-heading>
-            {isEditing && (
+            {/* {isEditing && (
               <s-text tone="subdued">
                 Editing · ID: {existingForm.formId}
               </s-text>
-            )}
+            )} */}
           </s-stack>
         </s-stack>
         <s-stack>
@@ -728,898 +1141,1620 @@ export default function FormBuilder({ config, existingForm = null }) {
 
       {/* Horizontal Navigation Tabs (Placed above middle elements panel) */}
       <s-stack direction="inline" gap="base" padding="base none">
-        {tabs.map((tab) => (
-          <s-button
-            key={tab.id}
-            variant={activeTab === tab.id ? "secondary" : "tertiary"}
-            onClick={() => {
-              setActiveTab(tab.id);
-              setSelectedFieldId(null);
-            }}
-          >
-            <s-stack direction="inline" gap="base">
-              <s-icon type={tab.icon} color="subdued"></s-icon>
-              {tab.label}
-            </s-stack>
-          </s-button>
-        ))}
+        {tabs
+          .filter((tab) => formCategory === "b2b" || tab.id !== "settings")
+          .map((tab) => (
+            <s-button
+              key={tab.id}
+              variant={activeTab === tab.id ? "secondary" : "tertiary"}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setSelectedFieldId(null);
+              }}
+            >
+              <s-stack direction="inline" gap="base">
+                <s-icon type={tab.icon} color="subdued"></s-icon>
+                {tab.label}
+              </s-stack>
+            </s-button>
+          ))}
       </s-stack>
 
       {/* Main Workspace Layout using Spruce Grid */}
       <s-grid gridTemplateColumns="repeat(12, 1fr)" gap="base">
         {/* Left Side Pane: Horizontal Nav Tab + Elements List */}
         <s-grid-item gridColumn="span 4">
-          <s-section>
-            {/* Sub-Pane Body based on activeTab */}
-            <s-stack padding="base" gap="base">
-              {activeTab === "elements" && (
-                <>
-                  {selectedFieldId === null ? (
-                    // Normal Elements list panel
-                    <s-section padding="none" gap="none">
-                      <s-stack padding="none" gap="base">
-                        <s-stack
-                          gap="base"
-                          style={{
-                            paddingBottom: "16px",
-                            marginBottom: "8px",
-                            borderBottom: "1px solid #e5e7eb",
-                          }}
-                        >
-                          <s-heading level="3">Form details</s-heading>
+          <s-scroll-box blockSize="620px" padding="none ">
 
-                          <s-text-field
-                            label="Form name"
-                            value={formName}
-                            onInput={handleFieldInput}
-                            onChange={(e) => setFormName(e.currentTarget.value)}
-                            details="Internal name shown in your Forms list"
-                          />
+            <s-section>
+              {/* Sub-Pane Body based on activeTab */}
+              <s-stack padding="none" gap="base">
+                {activeTab === "elements" && (
+                  <>
+                    {selectedFieldId === null ? (
+                      // Normal Elements list panel
+                      <s-section padding="none" gap="none">
+                        <s-stack padding="none" gap="base">
+                          {/* Internal Form Settings */}
+                          <s-stack
+                            gap="base"
+                            style={{
+                              paddingBottom: "16px",
+                              marginBottom: "8px",
+                              borderBottom: "1px solid #e5e7eb",
+                            }}
+                          >
+                            <s-stack direction="inline" alignItems="center" gap="small" style={{ marginBottom: "8px" }}>
+                              <input
+                                type="checkbox"
+                                id="enable-b2b-checkbox"
+                                checked={formCategory === "b2b"}
+                                onChange={(e) => {
+                                  handleFieldInput();
+                                  const checked = e.target.checked;
+                                  setFormCategory(checked ? "b2b" : "custom");
+                                  if (!checked && activeTab === "settings") {
+                                    setActiveTab("elements");
+                                  }
+                                }}
+                                style={{
+                                  width: "16px",
+                                  height: "16px",
+                                  accentColor: "#008060",
+                                  cursor: "pointer",
+                                }}
+                              />
+                              <label
+                                htmlFor="enable-b2b-checkbox"
+                                style={{
+                                  fontSize: "14px",
+                                  fontWeight: "500",
+                                  color: "#202223",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                Enable B2B
+                              </label>
+                            </s-stack>
+                            <s-text-field
+                              label="Form name"
+                              value={formName}
+                              onInput={handleFieldInput}
+                              onChange={(e) => setFormName(e.currentTarget.value)}
 
-                          <s-text-field
-                            label="Form title"
-                            value={formHeaderTitle}
-                            onInput={handleFieldInput}
-                            onChange={(e) =>
-                              setFormHeaderTitle(e.currentTarget.value)
-                            }
-                            details="Header displayed at the top of the form"
-                          />
-
-                          <s-stack gap="small">
-                            <s-text
-                              style={{
-                                fontSize: "13px",
-                                fontWeight: "500",
-                                color: "#202223",
-                              }}
-                            >
-                              Form description
-                            </s-text>
-                            <textarea
-                              value={formDescription}
-                              onChange={(e) => {
-                                handleFieldInput();
-                                setFormDescription(e.target.value);
-                              }}
-                              rows={3}
-                              placeholder="Short text below the form title"
-                              style={{
-                                width: "100%",
-                                padding: "10px 12px",
-                                border: "1px solid #c9cccf",
-                                borderRadius: "8px",
-                                fontSize: "14px",
-                                fontFamily: "inherit",
-                                resize: "vertical",
-                                boxSizing: "border-box",
-                              }}
                             />
                           </s-stack>
-                        </s-stack>
 
-                        <s-heading level="3">Elements</s-heading>
+                          <s-heading level="3">Elements</s-heading>
 
-                        {pages.map((page) => {
-                          const pageFields = fields.filter(
-                            (f) => (f.page || 1) === page.id,
-                          );
-                          return (
-                            <s-stack gap="small" key={page.id}>
-                              {/* Page Title Row */}
-                              <div
-                                className="tree-page-title-row"
-                                onClick={() => togglePageCollapse(page.id)}
-                                style={{ cursor: "pointer" }}
-                              >
-                                <svg
-                                  width="14"
-                                  height="14"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2.5"
-                                  style={{
-                                    color: "#6d7175",
-                                    transform: collapsedPages[page.id]
-                                      ? "rotate(-90deg)"
-                                      : "rotate(0deg)",
-                                    transition: "transform 0.2s ease",
-                                  }}
+                          {/* Premium Clickable Header card in the Elements list */}
+                          <div
+                            onClick={() => setSelectedFieldId("form-header")}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              padding: "8px 12px",
+                              background: selectedFieldId === "form-header" ? "rgba(0, 128, 96, 0.05)" : "#ffffff",
+                              border: selectedFieldId === "form-header" ? "1px solid #008060" : "1px solid #e1e3e5",
+                              borderRadius: "8px",
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                              marginBottom: "12px",
+                              boxShadow: selectedFieldId === "form-header" ? "0 1px 3px rgba(0, 128, 96, 0.1)" : "none",
+                            }}
+                            onMouseEnter={(e) => {
+                              if (selectedFieldId !== "form-header") {
+                                e.currentTarget.style.borderColor = "#bbc3c9";
+                                e.currentTarget.style.background = "#f6f6f7";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (selectedFieldId !== "form-header") {
+                                e.currentTarget.style.borderColor = "#e1e3e5";
+                                e.currentTarget.style.background = "#ffffff";
+                              }
+                            }}
+                          >
+
+                            <span
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: selectedFieldId === "form-header" ? "#008060" : "#202223",
+                              }}
+                            >
+                              Header
+                            </span>
+                          </div>
+
+
+                          {pages.map((page) => {
+                            const pageFields = fields.filter(
+                              (f) => (f.page || 1) === page.id,
+                            );
+                            return (
+                              <s-stack gap="small" key={page.id}>
+                                {/* Page Title Row */}
+                                <div
+                                  className="tree-page-title-row"
+                                  onClick={() => togglePageCollapse(page.id)}
+                                  style={{ cursor: "pointer" }}
                                 >
-                                  <path d="m6 9 6 6 6-6" />
-                                </svg>
-                                <svg
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2.5"
-                                  style={{ color: "#6d7175" }}
-                                >
-                                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                                </svg>
-                                <s-text
-                                  style={{
-                                    fontSize: "14px",
-                                    fontWeight: "600",
-                                    color: "#202223",
-                                  }}
-                                >
-                                  {page.title}
-                                </s-text>
-                                {pages.length > 1 && (
-                                  <button
-                                    className="delete-page-btn"
-                                    title="Delete Page"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      deletePage(page.id);
+                                  <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    style={{
+                                      color: "#6d7175",
+                                      transform: collapsedPages[page.id]
+                                        ? "rotate(-90deg)"
+                                        : "rotate(0deg)",
+                                      transition: "transform 0.2s ease",
                                     }}
                                   >
-                                    <svg
-                                      width="14"
-                                      height="14"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    >
-                                      <polyline points="3 6 5 6 21 6"></polyline>
-                                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                      <line
-                                        x1="10"
-                                        y1="11"
-                                        x2="10"
-                                        y2="17"
-                                      ></line>
-                                      <line
-                                        x1="14"
-                                        y1="11"
-                                        x2="14"
-                                        y2="17"
-                                      ></line>
-                                    </svg>
-                                  </button>
-                                )}
-                              </div>
-
-                              {/* Indented Fields Tree with Left Dotted Line */}
-                              {!collapsedPages[page.id] && (
-                                <s-stack className="tree-dotted-line">
-                                  {pageFields.map((field, idx) => (
-                                    <s-box
-                                      key={field.id}
-                                      className={`tree-field-item ${selectedFieldId === field.id ? "active" : ""}`}
-                                      onClick={() => setSelectedFieldId(field.id)}
-                                      padding="none"
-                                    >
-                                    <s-stack
-                                      direction="inline"
-                                      alignItems="center"
-                                      gap="small"
-                                    >
-                                      {/* <s-text className="field-type-icon">
-                                                                                    {getFieldIcon(field.type)}
-                                                                                </s-text> */}
-                                      <s-button inlineSize="fill">
-                                        <s-text className="field-label-text">
-                                          {field.label}
-                                        </s-text>
-                                      </s-button>
-                                    </s-stack>
-                                  </s-box>
-                                ))}
-
-                                {/* Add element button inside the indent */}
-                                <s-box
-                                  className="add-tree-item"
-                                  onClick={() => {
-                                    setAddingToPage(page.id);
-                                    setShowAddMenu(true);
-                                  }}
-                                  padding="none"
-                                >
-                                  <s-stack
-                                    direction="inline"
-                                    alignItems="center"
-                                    gap="small"
+                                    <path d="m6 9 6 6 6-6" />
+                                  </svg>
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    style={{ color: "#6d7175" }}
                                   >
-                                    <s-icon type="plus-circle"></s-icon>
-                                    <s-text
-                                      style={{
-                                        color: "#005ccc",
-                                        fontSize: "14px",
-                                        fontWeight: "500",
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                                  </svg>
+                                  <s-text
+                                    style={{
+                                      fontSize: "14px",
+                                      fontWeight: "600",
+                                      color: "#202223",
+                                    }}
+                                  >
+                                    {page.title}
+                                  </s-text>
+                                  {pages.length > 1 && (
+                                    <button
+                                      className="delete-page-btn"
+                                      title="Delete Page"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        deletePage(page.id);
                                       }}
                                     >
-                                      Add element
-                                    </s-text>
-                                  </s-stack>
-                                </s-box>
-                              </s-stack>
-                            </s-stack>
-                          );
-                        })}
+                                      <svg
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        <line
+                                          x1="10"
+                                          y1="11"
+                                          x2="10"
+                                          y2="17"
+                                        ></line>
+                                        <line
+                                          x1="14"
+                                          y1="11"
+                                          x2="14"
+                                          y2="17"
+                                        ></line>
+                                      </svg>
+                                    </button>
+                                  )}
+                                </div>
 
-                        {/* Add page button outside the indent */}
-                        <s-box
-                          className="add-tree-item"
-                          padding="none"
-                          onClick={() => {
-                            const newPageNum = pages.length + 1;
-                            setPages([
-                              ...pages,
-                              { id: newPageNum, title: `Page ${newPageNum}` },
-                            ]);
-                            setActivePreviewPage(newPageNum);
-                            triggerToast(`Page ${newPageNum} added`);
-                          }}
-                        >
+                                {/* Indented Fields Tree with Left Dotted Line */}
+                                {!collapsedPages[page.id] && (
+                                  <s-stack className="tree-dotted-line">
+                                    {pageFields.map((field, idx) => (
+
+
+
+                                      <s-button inlineSize="fill" key={field.id}
+                                        className={`tree-field-item ${selectedFieldId === field.id ? "active" : ""}`}
+                                        onClick={() => setSelectedFieldId(field.id)} >
+                                        {field.label}
+                                      </s-button>
+                                    ))}
+
+                                    {/* Add element button inside the indent */}
+                                    <s-box
+                                      className="add-tree-item"
+                                      onClick={() => {
+                                        setAddingToPage(page.id);
+                                        setShowAddMenu(true);
+                                      }}
+                                      padding="none"
+                                    >
+                                      <s-stack
+                                        direction="inline"
+                                        alignItems="center"
+                                        gap="small"
+                                      >
+                                        <s-icon type="plus-circle"></s-icon>
+                                        <s-text
+                                          style={{
+                                            color: "#005ccc",
+                                            fontSize: "14px",
+                                            fontWeight: "500",
+                                          }}
+                                        >
+                                          Add element
+                                        </s-text>
+                                      </s-stack>
+                                    </s-box>
+                                  </s-stack>
+                                )}
+                              </s-stack>
+                            );
+                          })}
+
+                          {/* Add page button outside the indent */}
+                          <s-box
+                            className="add-tree-item"
+                            padding="none"
+                            onClick={() => {
+                              const newPageNum = pages.length + 1;
+                              setPages([
+                                ...pages,
+                                { id: newPageNum, title: `Page ${newPageNum}` },
+                              ]);
+                              setActivePreviewPage(newPageNum);
+                              triggerToast(`Page ${newPageNum} added`);
+                            }}
+                          >
+                            <s-stack
+                              direction="inline"
+                              alignItems="center"
+                              gap="small"
+                            >
+                              <s-icon type="plus-circle"></s-icon>
+
+                              <s-text>Add page</s-text>
+                            </s-stack>
+                          </s-box>
+
+                          {/* Premium Clickable Footer card in the Elements list */}
+                          <div
+                            onClick={() => setSelectedFieldId("form-footer")}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              padding: "8px 12px",
+                              background: selectedFieldId === "form-footer" ? "rgba(0, 128, 96, 0.05)" : "#ffffff",
+                              border: selectedFieldId === "form-footer" ? "1px solid #008060" : "1px solid #e1e3e5",
+                              borderRadius: "8px",
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                              marginTop: "16px",
+                              boxShadow: selectedFieldId === "form-footer" ? "0 1px 3px rgba(0, 128, 96, 0.1)" : "none",
+                            }}
+                            onMouseEnter={(e) => {
+                              if (selectedFieldId !== "form-footer") {
+                                e.currentTarget.style.borderColor = "#bbc3c9";
+                                e.currentTarget.style.background = "#f6f6f7";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (selectedFieldId !== "form-footer") {
+                                e.currentTarget.style.borderColor = "#e1e3e5";
+                                e.currentTarget.style.background = "#ffffff";
+                              }
+                            }}
+                          >
+                            {/* Footer SVG Icon */}
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              style={{ color: selectedFieldId === "form-footer" ? "#008060" : "#6d7175" }}
+                            >
+                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                              <line x1="3" y1="16" x2="21" y2="16" />
+                              <circle cx="7" cy="19" r="0.75" fill="currentColor" />
+                              <circle cx="12" cy="19" r="0.75" fill="currentColor" />
+                              <circle cx="17" cy="19" r="0.75" fill="currentColor" />
+                            </svg>
+                            <span
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: selectedFieldId === "form-footer" ? "#008060" : "#202223",
+                              }}
+                            >
+                              Footer
+                            </span>
+                          </div>
+
+                          {/* {bannerVisible && (
+                            <s-box padding="base" style={{ background: "rgba(0, 128, 96, 0.04)", border: "1px solid rgba(0, 128, 96, 0.15)", borderRadius: "6px", position: "relative", marginTop: "auto" }}>
+                              <s-stack direction="inline" justifyContent="space-between" alignItems="flex-start">
+                                <s-stack gap="small">
+                                  <s-text style={{ fontSize: "12px", color: "#202223" }}>Looking for a form to schedule appointments?</s-text>
+                                  <s-text style={{ fontSize: "12px", color: "#008060", textDecoration: "underline", fontWeight: "500", cursor: "pointer" }}>Try Appointment Booking!</s-text>
+                                </s-stack>
+                                <s-button variant="secondary" onClick={() => setBannerVisible(false)} style={{ minWidth: "auto", padding: "0 6px" }}>×</s-button>
+                              </s-stack>
+                            </s-box>
+                          )} */}
+                        </s-stack>
+                      </s-section>
+                    ) : selectedFieldId === "form-header" ? (
+                      // Detail Editor for Form Header
+                      <s-section padding="none" gap="none">
+                        <s-stack gap="base" padding="base">
                           <s-stack
                             direction="inline"
                             alignItems="center"
-                            gap="small"
+                            gap="base"
+                            style={{
+                              borderBottom: "1px solid #e1e3e5",
+                              paddingBottom: "12px",
+                            }}
                           >
-                            <s-icon type="plus-circle"></s-icon>
-
-                            <s-text>Add page</s-text>
+                            <s-button
+                              variant="secondary"
+                              onClick={() => setSelectedFieldId(null)}
+                            >
+                              <s-icon type="arrow-left"></s-icon>
+                            </s-button>
+                            <s-heading level="3">Edit Header</s-heading>
                           </s-stack>
-                        </s-box>
 
-                        {/* {bannerVisible && (
-                                                <s-box padding="base" style={{ background: "rgba(0, 128, 96, 0.04)", border: "1px solid rgba(0, 128, 96, 0.15)", borderRadius: "6px", position: "relative", marginTop: "auto" }}>
-                                                    <s-stack direction="inline" justifyContent="space-between" alignItems="flex-start">
-                                                        <s-stack gap="small">
-                                                            <s-text style={{ fontSize: "12px", color: "#202223" }}>Looking for a form to schedule appointments?</s-text>
-                                                            <s-text style={{ fontSize: "12px", color: "#008060", textDecoration: "underline", fontWeight: "500", cursor: "pointer" }}>Try Appointment Booking!</s-text>
-                                                        </s-stack>
-                                                        <s-button variant="secondary" onClick={() => setBannerVisible(false)} style={{ minWidth: "auto", padding: "0 6px" }}>×</s-button>
-                                                    </s-stack>
-                                                </s-box>
-                                            )} */}
-                      </s-stack>
-                    </s-section>
-                  ) : (
-                    // Detail Editor when a field is selected
-                    <s-section>
-                      <s-stack gap="base">
-                        <s-stack
-                          direction="inline"
-                          alignItems="center"
-                          gap="base"
-                          style={{
-                            borderBottom: "1px solid #e1e3e5",
-                            paddingBottom: "12px",
-                          }}
-                        >
-                          <s-button
-                            variant="secondary"
-                            onClick={() => setSelectedFieldId(null)}
-                          >
-                            <s-icon type="arrow-left"></s-icon>
-                          </s-button>
-                          <s-heading level="3">Edit Field</s-heading>
-                        </s-stack>
-
-                        <s-stack gap="base">
-                          {/* Label */}
-                          <s-text-field
-                            label="Label"
-                            value={selectedField.label || ""}
-                            onChange={(e) =>
-                              updateSelectedField(
-                                "label",
-                                e.currentTarget.value,
-                              )
-                            }
-                          ></s-text-field>
-
-                          {/* Placeholder */}
-                          {selectedField.type !== "file" &&
-                            selectedField.type !== "divider" &&
-                            selectedField.type !== "rating" &&
-                            selectedField.type !== "feedback" &&
-                            selectedField.type !== "signature" &&
-                            selectedField.type !== "product" && (
-                              <s-text-field
-                                label="Placeholder"
-                                value={selectedField.placeholder || ""}
-                                onChange={(e) =>
-                                  updateSelectedField(
-                                    "placeholder",
-                                    e.currentTarget.value,
-                                  )
-                                }
-                              ></s-text-field>
-                            )}
-
-                          {/* Description */}
-                          <s-text-field
-                            label="Description"
-                            value={selectedField.description || ""}
-                            onChange={(e) =>
-                              updateSelectedField(
-                                "description",
-                                e.currentTarget.value,
-                              )
-                            }
-                          ></s-text-field>
-
-                          {/* Default Value */}
-                          {selectedField.type !== "file" &&
-                            selectedField.type !== "divider" &&
-                            selectedField.type !== "rating" &&
-                            selectedField.type !== "feedback" &&
-                            selectedField.type !== "signature" &&
-                            selectedField.type !== "product" && (
-                              <s-text-field
-                                label="Default value"
-                                value={selectedField.defaultValue || ""}
-                                onChange={(e) =>
-                                  updateSelectedField(
-                                    "defaultValue",
-                                    e.currentTarget.value,
-                                  )
-                                }
-                              ></s-text-field>
-                            )}
-
-                          {/* Options for selects */}
-                          {(selectedField.type === "select" ||
-                            selectedField.type === "dropdown" ||
-                            selectedField.type === "checkboxes" ||
-                            selectedField.type === "radio") && (
+                          <s-stack gap="base">
                             <s-text-field
-                              label="Options (comma separated)"
-                              value={
-                                selectedField.options
-                                  ? selectedField.options.join(", ")
-                                  : ""
+                              label="Form title"
+                              value={formHeaderTitle}
+                              onInput={handleFieldInput}
+                              onChange={(e) =>
+                                setFormHeaderTitle(e.currentTarget.value)
                               }
+                              details="Header displayed at the top of the form"
+                            />
+
+                            <s-stack gap="small">
+                              <s-text
+                                style={{
+                                  fontSize: "13px",
+                                  fontWeight: "500",
+                                  color: "#202223",
+                                }}
+                              >
+                                Form description
+                              </s-text>
+                              <textarea
+                                value={formDescription}
+                                onChange={(e) => {
+                                  handleFieldInput();
+                                  setFormDescription(e.target.value);
+                                }}
+                                rows={5}
+                                placeholder="Short text below the form title"
+                                style={{
+                                  width: "100%",
+                                  padding: "10px 12px",
+                                  border: "1px solid #c9cccf",
+                                  borderRadius: "8px",
+                                  fontSize: "14px",
+                                  fontFamily: "inherit",
+                                  resize: "vertical",
+                                  boxSizing: "border-box",
+                                }}
+                              />
+                            </s-stack>
+                          </s-stack>
+                        </s-stack>
+                      </s-section>
+                    ) : selectedFieldId === "form-footer" ? (
+                      // Detail Editor for Form Footer
+                      <s-section padding="none" gap="none">
+                        <s-stack gap="base" padding="none">
+                          {/* Back Header Nav */}
+                          <s-stack
+                            direction="inline"
+                            alignItems="center"
+                            gap="base"
+                            style={{
+                              borderBottom: "1px solid #e1e3e5",
+                              paddingBottom: "12px",
+                            }}
+                          >
+                            <s-button
+                              variant="secondary"
+                              onClick={() => setSelectedFieldId(null)}
+                            >
+                              <s-icon type="arrow-left"></s-icon>
+                            </s-button>
+                            <s-heading level="3">Footer</s-heading>
+                          </s-stack>
+
+                          <s-stack gap="base">
+                            {/* Rich text / Description block */}
+                            <s-stack gap="small">
+                              <s-text
+                                style={{
+                                  fontSize: "13px",
+                                  fontWeight: "500",
+                                  color: "#202223",
+                                }}
+                              >
+                                Text
+                              </s-text>
+                              <textarea
+                                value={footerText}
+                                onChange={(e) => {
+                                  handleFieldInput();
+                                  setFooterText(e.target.value);
+                                }}
+                                rows={4}
+                                placeholder="Write any footer text or instructions here"
+                                style={{
+                                  width: "100%",
+                                  padding: "10px 12px",
+                                  border: "1px solid #c9cccf",
+                                  borderRadius: "8px",
+                                  fontSize: "14px",
+                                  fontFamily: "inherit",
+                                  resize: "vertical",
+                                  boxSizing: "border-box",
+                                }}
+                              />
+                            </s-stack>
+
+                            {/* Previous button text input */}
+                            <div style={{ position: "relative" }}>
+                              <s-text-field
+                                label="Previous"
+                                value={footerPreviousText}
+                                onInput={handleFieldInput}
+                                onChange={(e) =>
+                                  setFooterPreviousText(e.currentTarget.value)
+                                }
+                              />
+                            </div>
+
+                            {/* Next button text input */}
+                            <div style={{ position: "relative" }}>
+                              <s-text-field
+                                label="Next"
+                                value={footerNextText}
+                                onInput={handleFieldInput}
+                                onChange={(e) =>
+                                  setFooterNextText(e.currentTarget.value)
+                                }
+                              />
+                            </div>
+
+                            {/* Submit text input */}
+                            <div style={{ position: "relative" }}>
+                              <s-text-field
+                                label="Submit text"
+                                value={footerSubmitText}
+                                onInput={handleFieldInput}
+                                onChange={(e) =>
+                                  setFooterSubmitText(e.currentTarget.value)
+                                }
+                              />
+                            </div>
+
+                            {/* Reset Button Toggle */}
+                            <s-stack direction="inline" alignItems="center" gap="small" style={{ marginTop: "8px" }}>
+                              <input
+                                type="checkbox"
+                                id="footer-reset-checkbox"
+                                checked={footerShowReset}
+                                onChange={(e) => {
+                                  handleFieldInput();
+                                  setFooterShowReset(e.target.checked);
+                                }}
+                                style={{
+                                  width: "16px",
+                                  height: "16px",
+                                  accentColor: "#008060",
+                                  cursor: "pointer",
+                                }}
+                              />
+                              <label
+                                htmlFor="footer-reset-checkbox"
+                                style={{
+                                  fontSize: "14px",
+                                  fontWeight: "500",
+                                  color: "#202223",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                Reset button
+                              </label>
+                            </s-stack>
+
+                            {/* Full width toggle */}
+                            <s-stack direction="inline" alignItems="center" gap="small">
+                              <input
+                                type="checkbox"
+                                id="footer-full-width-checkbox"
+                                checked={footerFullWidth}
+                                onChange={(e) => {
+                                  handleFieldInput();
+                                  setFooterFullWidth(e.target.checked);
+                                }}
+                                style={{
+                                  width: "16px",
+                                  height: "16px",
+                                  accentColor: "#008060",
+                                  cursor: "pointer",
+                                }}
+                              />
+                              <label
+                                htmlFor="footer-full-width-checkbox"
+                                style={{
+                                  fontSize: "14px",
+                                  fontWeight: "500",
+                                  color: "#202223",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                Full width footer button
+                              </label>
+                            </s-stack>
+                          </s-stack>
+                        </s-stack>
+                      </s-section>
+                    ) : (
+                      // Detail Editor when a field is selected
+                      <s-section>
+                        <s-stack gap="base" padding="none" >
+                          <s-stack
+                            direction="inline"
+                            alignItems="center"
+                            gap="base"
+                            style={{
+                              borderBottom: "1px solid #e1e3e5",
+                              paddingBottom: "12px",
+                            }}
+                          >
+                            <s-button
+                              variant="secondary"
+                              onClick={() => setSelectedFieldId(null)}
+                            >
+                              <s-icon type="arrow-left"></s-icon>
+                            </s-button>
+                            <s-heading level="3">Edit Field</s-heading>
+                          </s-stack>
+
+                          <s-stack gap="base">
+                            {/* Label */}
+                            <s-text-field
+                              label="Label"
+                              value={selectedField.label || ""}
                               onChange={(e) =>
                                 updateSelectedField(
-                                  "options",
-                                  e.currentTarget.value
-                                    .split(",")
-                                    .map((s) => s.trim()),
+                                  "label",
+                                  e.currentTarget.value,
                                 )
                               }
                             ></s-text-field>
-                          )}
 
-                          {/* Checkboxes stacked */}
-                          <s-stack gap="small" style={{ marginTop: "8px" }}>
-                            {/* Limit characters */}
-                            {[
-                              "text",
-                              "textarea",
-                              "email",
-                              "url",
-                              "password",
-                            ].includes(selectedField.type) && (
-                              <s-stack
-                                direction="inline"
-                                gap="small"
-                                alignItems="center"
-                              >
-                                <input
-                                  type="checkbox"
-                                  id="limit-characters-checkbox"
-                                  checked={
-                                    selectedField.limitCharacters || false
-                                  }
-                                  onChange={(e) =>
-                                    updateSelectedField(
-                                      "limitCharacters",
-                                      e.target.checked,
-                                    )
-                                  }
-                                  style={{
-                                    width: "16px",
-                                    height: "16px",
-                                    accentColor: "#008060",
-                                    cursor: "pointer",
-                                  }}
-                                />
-                                <label
-                                  htmlFor="limit-characters-checkbox"
-                                  style={{
-                                    fontSize: "13px",
-                                    color: "#202223",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  Limit characters
-                                </label>
-                              </s-stack>
-                            )}
-
-                            {/* Hide label */}
-                            {selectedField.type !== "divider" &&
-                              selectedField.type !== "heading" &&
-                              selectedField.type !== "paragraph" && (
-                                <s-stack
-                                  direction="inline"
-                                  gap="small"
-                                  alignItems="center"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    id="hide-label-checkbox"
-                                    checked={selectedField.hideLabel || false}
-                                    onChange={(e) =>
-                                      updateSelectedField(
-                                        "hideLabel",
-                                        e.target.checked,
-                                      )
-                                    }
-                                    style={{
-                                      width: "16px",
-                                      height: "16px",
-                                      accentColor: "#008060",
-                                      cursor: "pointer",
-                                    }}
-                                  />
-                                  <label
-                                    htmlFor="hide-label-checkbox"
-                                    style={{
-                                      fontSize: "13px",
-                                      color: "#202223",
-                                      cursor: "pointer",
-                                    }}
-                                  >
-                                    Hide label
-                                  </label>
-                                </s-stack>
-                              )}
-
-                            {/* Required */}
-                            {selectedField.type !== "heading" &&
-                              selectedField.type !== "paragraph" &&
+                            {/* Placeholder */}
+                            {selectedField.type !== "file" &&
                               selectedField.type !== "divider" &&
-                              selectedField.type !== "button" && (
-                                <s-stack
-                                  direction="inline"
-                                  gap="small"
-                                  alignItems="center"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    id="required-checkbox"
-                                    checked={selectedField.required || false}
-                                    onChange={(e) =>
-                                      updateSelectedField(
-                                        "required",
-                                        e.target.checked,
-                                      )
-                                    }
-                                    style={{
-                                      width: "16px",
-                                      height: "16px",
-                                      accentColor: "#008060",
-                                      cursor: "pointer",
-                                    }}
-                                  />
-                                  <label
-                                    htmlFor="required-checkbox"
-                                    style={{
-                                      fontSize: "13px",
-                                      color: "#202223",
-                                      cursor: "pointer",
-                                    }}
-                                  >
-                                    Required
-                                  </label>
-                                </s-stack>
-                              )}
-
-                            {/* Enter numbers only */}
-                            {["text", "number"].includes(
-                              selectedField.type,
-                            ) && (
-                              <s-stack
-                                direction="inline"
-                                gap="small"
-                                alignItems="center"
-                              >
-                                <input
-                                  type="checkbox"
-                                  id="numbers-only-checkbox"
-                                  checked={selectedField.numbersOnly || false}
+                              selectedField.type !== "rating" &&
+                              selectedField.type !== "feedback" &&
+                              selectedField.type !== "signature" &&
+                              selectedField.type !== "product" && (
+                                <s-text-field
+                                  label="Placeholder"
+                                  value={selectedField.placeholder || ""}
                                   onChange={(e) =>
                                     updateSelectedField(
-                                      "numbersOnly",
-                                      e.target.checked,
+                                      "placeholder",
+                                      e.currentTarget.value,
                                     )
                                   }
-                                  style={{
-                                    width: "16px",
-                                    height: "16px",
-                                    accentColor: "#008060",
-                                    cursor: "pointer",
-                                  }}
-                                />
-                                <label
-                                  htmlFor="numbers-only-checkbox"
-                                  style={{
-                                    fontSize: "13px",
-                                    color: "#202223",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  Enter numbers only
-                                </label>
-                              </s-stack>
-                            )}
+                                ></s-text-field>
+                              )}
 
-                            {/* Show required note if hide label */}
-                            {selectedField.type !== "divider" &&
-                              selectedField.type !== "heading" &&
-                              selectedField.type !== "paragraph" && (
-                                <s-stack
-                                  direction="inline"
-                                  gap="small"
-                                  alignItems="center"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    id="show-required-note-checkbox"
-                                    checked={
-                                      selectedField.showRequiredNoteIfHideLabel ||
-                                      false
-                                    }
-                                    onChange={(e) =>
-                                      updateSelectedField(
-                                        "showRequiredNoteIfHideLabel",
-                                        e.target.checked,
-                                      )
-                                    }
-                                    style={{
-                                      width: "16px",
-                                      height: "16px",
-                                      accentColor: "#008060",
-                                      cursor: "pointer",
-                                    }}
-                                  />
-                                  <label
-                                    htmlFor="show-required-note-checkbox"
+                            {/* Description */}
+                            <s-text-field
+                              label="Description"
+                              value={selectedField.description || ""}
+                              onChange={(e) =>
+                                updateSelectedField(
+                                  "description",
+                                  e.currentTarget.value,
+                                )
+                              }
+                            ></s-text-field>
+
+                            {/* Default Value */}
+                            {selectedField.type !== "file" &&
+                              selectedField.type !== "divider" &&
+                              selectedField.type !== "rating" &&
+                              selectedField.type !== "feedback" &&
+                              selectedField.type !== "signature" &&
+                              selectedField.type !== "product" && (
+                                <s-text-field
+                                  label="Default value"
+                                  value={selectedField.defaultValue || ""}
+                                  onChange={(e) =>
+                                    updateSelectedField(
+                                      "defaultValue",
+                                      e.currentTarget.value,
+                                    )
+                                  }
+                                ></s-text-field>
+                              )}
+
+                            {/* Default Country for Phone/Tel fields */}
+                            {(selectedField.type === "phone" ||
+                              selectedField.type === "tel") && (
+                                <s-stack gap="small" style={{ marginTop: "8px" }}>
+                                  <s-text
                                     style={{
                                       fontSize: "13px",
+                                      fontWeight: "500",
                                       color: "#202223",
-                                      cursor: "pointer",
                                     }}
                                   >
-                                    Show required note if hide label?
-                                  </label>
+                                    Default Country
+                                  </s-text>
+                                  <select
+                                    value={selectedField.defaultCountry || "IN"}
+                                    onChange={(e) => {
+                                      handleFieldInput();
+                                      updateSelectedField(
+                                        "defaultCountry",
+                                        e.target.value,
+                                      );
+                                    }}
+                                    style={{
+                                      width: "100%",
+                                      height: "38px",
+                                      border: "1px solid #c9cccf",
+                                      borderRadius: "8px",
+                                      padding: "0 12px",
+                                      fontSize: "14px",
+                                      background: "#ffffff",
+                                      cursor: "pointer",
+                                      boxSizing: "border-box",
+                                    }}
+                                  >
+                                    {countriesList.map((c) => (
+                                      <option key={c.code} value={c.code}>
+                                        {c.name} ({c.dial})
+                                      </option>
+                                    ))}
+                                  </select>
                                 </s-stack>
                               )}
-                          </s-stack>
 
-                          {/* Column width */}
-                          <s-stack gap="small" style={{ marginTop: "12px" }}>
-                            <s-text
-                              style={{
-                                fontSize: "12px",
-                                color: "#6d7175",
-                                fontWeight: "500",
-                              }}
+                            {/* Options for selects */}
+                            {(selectedField.type === "select" ||
+                              selectedField.type === "dropdown" ||
+                              selectedField.type === "checkboxes" ||
+                              selectedField.type === "radio") && (
+                                <s-text-field
+                                  label="Options (comma separated)"
+                                  value={
+                                    selectedField.options
+                                      ? selectedField.options.join(", ")
+                                      : ""
+                                  }
+                                  onChange={(e) =>
+                                    updateSelectedField(
+                                      "options",
+                                      e.currentTarget.value
+                                        .split(",")
+                                        .map((s) => s.trim()),
+                                    )
+                                  }
+                                ></s-text-field>
+                              )}
+
+                            {/* Checkboxes stacked */}
+                            <s-stack gap="small" style={{ marginTop: "8px" }}>
+                              {/* Limit characters */}
+                              {[
+                                "text",
+                                "textarea",
+                                "email",
+                                "url",
+                                "password",
+                              ].includes(selectedField.type) && (
+                                  <s-stack gap="small">
+                                    <s-stack
+                                      direction="inline"
+                                      gap="small"
+                                      alignItems="center"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        id="limit-characters-checkbox"
+                                        checked={
+                                          selectedField.limitCharacters || false
+                                        }
+                                        onChange={(e) =>
+                                          updateSelectedField(
+                                            "limitCharacters",
+                                            e.target.checked,
+                                          )
+                                        }
+                                        style={{
+                                          width: "16px",
+                                          height: "16px",
+                                          accentColor: "#008060",
+                                          cursor: "pointer",
+                                        }}
+                                      />
+                                      <label
+                                        htmlFor="limit-characters-checkbox"
+                                        style={{
+                                          fontSize: "13px",
+                                          color: "#202223",
+                                          cursor: "pointer",
+                                        }}
+                                      >
+                                        Limit characters
+                                      </label>
+                                    </s-stack>
+
+                                    {selectedField.limitCharacters && (
+                                      <s-stack gap="small" style={{ marginTop: "4px" }}>
+                                        <s-stack direction="inline" gap="base">
+                                          <div style={{ flex: 1 }}>
+                                            <s-text style={{ fontSize: "13px", color: "#202223", display: "block", marginBottom: "4px", fontWeight: "500" }}>
+                                              Min characters
+                                            </s-text>
+                                            <input
+                                              type="number"
+                                              value={selectedField.minCharacters ?? ""}
+                                              onChange={(e) =>
+                                                updateSelectedField(
+                                                  "minCharacters",
+                                                  e.target.value === "" ? "" : parseInt(e.target.value, 10)
+                                                )
+                                              }
+                                              style={{
+                                                width: "100%",
+                                                height: "38px",
+                                                border: "1px solid #c9cccf",
+                                                borderRadius: "8px",
+                                                padding: "0 12px",
+                                                fontSize: "14px",
+                                                boxSizing: "border-box"
+                                              }}
+                                            />
+                                          </div>
+                                          <div style={{ flex: 1 }}>
+                                            <s-text style={{ fontSize: "13px", color: "#202223", display: "block", marginBottom: "4px", fontWeight: "500" }}>
+                                              Max characters
+                                            </s-text>
+                                            <input
+                                              type="number"
+                                              value={selectedField.maxCharacters ?? ""}
+                                              onChange={(e) =>
+                                                updateSelectedField(
+                                                  "maxCharacters",
+                                                  e.target.value === "" ? "" : parseInt(e.target.value, 10)
+                                                )
+                                              }
+                                              style={{
+                                                width: "100%",
+                                                height: "38px",
+                                                border: "1px solid #c9cccf",
+                                                borderRadius: "8px",
+                                                padding: "0 12px",
+                                                fontSize: "14px",
+                                                boxSizing: "border-box"
+                                              }}
+                                            />
+                                          </div>
+                                        </s-stack>
+                                        <s-text style={{ fontSize: "12px", color: "#6d7175", lineHeight: "1.4", marginTop: "2px" }}>
+                                          Note: If you don't want to set a maximum number of characters, please leave this field blank instead of setting it to 0.
+                                        </s-text>
+                                      </s-stack>
+                                    )}
+                                  </s-stack>
+                                )}
+
+                              {/* Hide label */}
+                              {selectedField.type !== "divider" &&
+                                selectedField.type !== "heading" &&
+                                selectedField.type !== "paragraph" && (
+                                  <s-stack
+                                    direction="inline"
+                                    gap="small"
+                                    alignItems="center"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      id="hide-label-checkbox"
+                                      checked={selectedField.hideLabel || false}
+                                      onChange={(e) =>
+                                        updateSelectedField(
+                                          "hideLabel",
+                                          e.target.checked,
+                                        )
+                                      }
+                                      style={{
+                                        width: "16px",
+                                        height: "16px",
+                                        accentColor: "#008060",
+                                        cursor: "pointer",
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor="hide-label-checkbox"
+                                      style={{
+                                        fontSize: "13px",
+                                        color: "#202223",
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      Hide label
+                                    </label>
+                                  </s-stack>
+                                )}
+
+                              {/* Required */}
+                              {selectedField.type !== "heading" &&
+                                selectedField.type !== "paragraph" &&
+                                selectedField.type !== "divider" &&
+                                selectedField.type !== "button" && (
+                                  <s-stack
+                                    direction="inline"
+                                    gap="small"
+                                    alignItems="center"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      id="required-checkbox"
+                                      checked={selectedField.required || false}
+                                      onChange={(e) =>
+                                        updateSelectedField(
+                                          "required",
+                                          e.target.checked,
+                                        )
+                                      }
+                                      style={{
+                                        width: "16px",
+                                        height: "16px",
+                                        accentColor: "#008060",
+                                        cursor: "pointer",
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor="required-checkbox"
+                                      style={{
+                                        fontSize: "13px",
+                                        color: "#202223",
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      Required
+                                    </label>
+                                  </s-stack>
+                                )}
+                              {/* Rating special fields */}
+                              {(selectedField.type === "rating" ||
+                                selectedField.type === "feedback") && (
+                                  <s-stack gap="small" style={{ marginTop: "8px" }}>
+                                    <s-stack
+                                      direction="inline"
+                                      gap="small"
+                                      alignItems="center"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        id="choose-another-icon-checkbox"
+                                        checked={selectedField.chooseAnotherIcon || false}
+                                        onChange={(e) =>
+                                          updateSelectedField(
+                                            "chooseAnotherIcon",
+                                            e.target.checked,
+                                          )
+                                        }
+                                        style={{
+                                          width: "16px",
+                                          height: "16px",
+                                          accentColor: "#008060",
+                                          cursor: "pointer",
+                                        }}
+                                      />
+                                      <label
+                                        htmlFor="choose-another-icon-checkbox"
+                                        style={{
+                                          fontSize: "13px",
+                                          color: "#202223",
+                                          cursor: "pointer",
+                                        }}
+                                      >
+                                        Choose another icon
+                                      </label>
+                                    </s-stack>
+
+                                    {selectedField.chooseAnotherIcon && (
+                                      <s-stack gap="small" style={{ paddingLeft: "24px", marginTop: "4px" }}>
+                                        <s-text style={{ fontSize: "13px", fontWeight: "500", color: "#202223" }}>
+                                          Select Icon
+                                        </s-text>
+                                        <select
+                                          value={selectedField.ratingIcon || "star"}
+                                          onChange={(e) =>
+                                            updateSelectedField(
+                                              "ratingIcon",
+                                              e.target.value,
+                                            )
+                                          }
+                                          style={{
+                                            width: "100%",
+                                            height: "38px",
+                                            border: "1px solid #c9cccf",
+                                            borderRadius: "8px",
+                                            padding: "0 12px",
+                                            fontSize: "14px",
+                                            background: "#ffffff",
+                                            cursor: "pointer"
+                                          }}
+                                        >
+                                          <option value="star">Star (⭐)</option>
+                                          <option value="heart">Heart (❤️)</option>
+                                          <option value="smile">Smile (😊)</option>
+                                          <option value="thumb">Thumb up (👍)</option>
+                                        </select>
+                                      </s-stack>
+                                    )}
+
+                                    <s-stack
+                                      direction="inline"
+                                      gap="small"
+                                      alignItems="center"
+                                      style={{ marginTop: "4px" }}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        id="show-number-under-icon-checkbox"
+                                        checked={selectedField.showNumberUnderIcon || false}
+                                        onChange={(e) =>
+                                          updateSelectedField(
+                                            "showNumberUnderIcon",
+                                            e.target.checked,
+                                          )
+                                        }
+                                        style={{
+                                          width: "16px",
+                                          height: "16px",
+                                          accentColor: "#008060",
+                                          cursor: "pointer",
+                                        }}
+                                      />
+                                      <label
+                                        htmlFor="show-number-under-icon-checkbox"
+                                        style={{
+                                          fontSize: "13px",
+                                          color: "#202223",
+                                          cursor: "pointer",
+                                        }}
+                                      >
+                                        Show number under icon
+                                      </label>
+                                    </s-stack>
+                                  </s-stack>
+                                )}
+
+
+                              {/* Enter numbers only */}
+                              {["text", "number"].includes(
+                                selectedField.type,
+                              ) && (
+                                  <s-stack
+                                    direction="inline"
+                                    gap="small"
+                                    alignItems="center"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      id="numbers-only-checkbox"
+                                      checked={selectedField.numbersOnly || false}
+                                      onChange={(e) =>
+                                        updateSelectedField(
+                                          "numbersOnly",
+                                          e.target.checked,
+                                        )
+                                      }
+                                      style={{
+                                        width: "16px",
+                                        height: "16px",
+                                        accentColor: "#008060",
+                                        cursor: "pointer",
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor="numbers-only-checkbox"
+                                      style={{
+                                        fontSize: "13px",
+                                        color: "#202223",
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      Enter numbers only
+                                    </label>
+                                  </s-stack>
+                                )}
+
+                              {/* Show required note if hide label */}
+                              {selectedField.type !== "divider" &&
+                                selectedField.type !== "heading" &&
+                                selectedField.type !== "paragraph" && (
+                                  <s-stack
+                                    direction="inline"
+                                    gap="small"
+                                    alignItems="center"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      id="show-required-note-checkbox"
+                                      checked={
+                                        selectedField.showRequiredNoteIfHideLabel ||
+                                        false
+                                      }
+                                      onChange={(e) =>
+                                        updateSelectedField(
+                                          "showRequiredNoteIfHideLabel",
+                                          e.target.checked,
+                                        )
+                                      }
+                                      style={{
+                                        width: "16px",
+                                        height: "16px",
+                                        accentColor: "#008060",
+                                        cursor: "pointer",
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor="show-required-note-checkbox"
+                                      style={{
+                                        fontSize: "13px",
+                                        color: "#202223",
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      Show required note if hide label?
+                                    </label>
+                                  </s-stack>
+                                )}
+                            </s-stack>
+
+                            {/* Column width */}
+                            <s-stack gap="small" style={{ marginTop: "12px" }}>
+                              <s-text
+                                style={{
+                                  fontSize: "12px",
+                                  color: "#6d7175",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                Column width
+                              </s-text>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  background: "#f1f2f4",
+                                  borderRadius: "8px",
+                                  padding: "3px",
+                                  border: "1px solid #bbc3c9",
+                                }}
+                              >
+                                {["33%", "50%", "100%"].map((w) => {
+                                  const isActive =
+                                    selectedField.columnWidth === w ||
+                                    (!selectedField.columnWidth && w === "50%");
+                                  return (
+                                    <button
+                                      key={w}
+                                      onClick={() =>
+                                        updateSelectedField("columnWidth", w)
+                                      }
+                                      style={{
+                                        flex: 1,
+                                        border: "none",
+                                        background: isActive
+                                          ? "#ffffff"
+                                          : "transparent",
+                                        borderRadius: "6px",
+                                        padding: "6px 0",
+                                        fontSize: "13px",
+                                        fontWeight: isActive ? "600" : "400",
+                                        color: isActive ? "#202223" : "#6d7175",
+                                        boxShadow: isActive
+                                          ? "0 1px 3px rgba(0,0,0,0.1)"
+                                          : "none",
+                                        cursor: "pointer",
+                                        transition: "all 0.15s ease",
+                                      }}
+                                    >
+                                      {w}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </s-stack>
+
+                            <s-divider></s-divider>
+
+                            <s-button
+                              variant="secondary"
+                              tone="critical"
+                              onClick={() => deleteField(selectedField.id)}
+                              style={{ width: "100%" }}
                             >
-                              Column width
-                            </s-text>
+                              Delete Field
+                            </s-button>
+                          </s-stack>
+                        </s-stack>
+                      </s-section>
+                    )}
+                  </>
+                )}
+
+                {activeTab === "appearance" && (
+                  <s-section padding="none">
+                    <s-stack gap="base" padding="none">
+                      <s-heading level="3">Appearance settings</s-heading>
+
+                      {/* Group 1: General Layout & Font */}
+                      <s-heading level="4" style={{ color: "#6d7175", fontSize: "11px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: "12px" }}>
+                        General Layout & Font
+                      </s-heading>
+
+                      {/* Font Family */}
+                      <s-select
+                        label="Font Family"
+                        value={fontFamily}
+                        onChange={(e) => {
+                          handleFieldInput();
+                          setFontFamily(e.currentTarget.value);
+                        }}
+                      >
+                        <s-option value="Inter, sans-serif">Inter</s-option>
+                        <s-option value="Outfit, sans-serif">Outfit</s-option>
+                        <s-option value="system-ui, sans-serif">System UI</s-option>
+                        <s-option value="Georgia, serif">Georgia</s-option>
+                      </s-select>
+
+                      {/* Border Radius */}
+                      <s-select
+                        label="Border Radius"
+                        value={borderRadius}
+                        onChange={(e) => {
+                          handleFieldInput();
+                          setBorderRadius(e.currentTarget.value);
+                        }}
+                      >
+                        <s-option value="0px">Square (0px)</s-option>
+                        <s-option value="4px">Soft (4px)</s-option>
+                        <s-option value="8px">Standard (8px)</s-option>
+                        <s-option value="16px">Rounded (16px)</s-option>
+                        <s-option value="30px">Pill (30px)</s-option>
+                      </s-select>
+
+                      {/* Form Background */}
+                      <s-stack gap="small">
+                        <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
+                          Form Background Color
+                        </s-text>
+                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
+                          <input
+                            type="color"
+                            value={backgroundColor}
+                            onChange={(e) => {
+                              handleFieldInput();
+                              setBackgroundColor(e.target.value);
+                            }}
+                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none", backgroundColor: "transparent" }}
+                          />
+                        </div>
+                        <s-text-field
+                          value={backgroundColor}
+                          onInput={handleFieldInput}
+                          onChange={(e) => setBackgroundColor(e.currentTarget.value)}
+                        />
+                      </s-stack>
+
+                      {/* Group 2: Form Header Text Styling */}
+                      <s-heading level="4" style={{ color: "#6d7175", fontSize: "11px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: "16px" }}>
+                        Form Header Text Styling
+                      </s-heading>
+
+                      {/* Title Color */}
+                      <s-stack gap="small">
+                        <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
+                          Title Color
+                        </s-text>
+                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
+                          <input
+                            type="color"
+                            value={titleColor}
+                            onChange={(e) => {
+                              handleFieldInput();
+                              setTitleColor(e.target.value);
+                            }}
+                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
+                          />
+                        </div>
+                        <s-text-field
+                          value={titleColor}
+                          onInput={handleFieldInput}
+                          onChange={(e) => setTitleColor(e.currentTarget.value)}
+                        />
+                      </s-stack>
+
+                      {/* Title Font Size */}
+                      <s-select
+                        label="Title Font Size"
+                        value={titleFontSize}
+                        onChange={(e) => {
+                          handleFieldInput();
+                          setTitleFontSize(e.currentTarget.value);
+                        }}
+                      >
+                        <s-option value="20px">Small (20px)</s-option>
+                        <s-option value="24px">Medium (24px)</s-option>
+                        <s-option value="26px">Standard (26px)</s-option>
+                        <s-option value="28px">Large (28px)</s-option>
+                        <s-option value="32px">Extra Large (32px)</s-option>
+                        <s-option value="36px">Display (36px)</s-option>
+                      </s-select>
+
+                      {/* Description Color */}
+                      <s-stack gap="small">
+                        <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
+                          Description Color
+                        </s-text>
+                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
+                          <input
+                            type="color"
+                            value={descriptionColor}
+                            onChange={(e) => {
+                              handleFieldInput();
+                              setDescriptionColor(e.target.value);
+                            }}
+                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
+                          />
+                        </div>
+                        <s-text-field
+                          value={descriptionColor}
+                          onInput={handleFieldInput}
+                          onChange={(e) => setDescriptionColor(e.currentTarget.value)}
+                        />
+                      </s-stack>
+
+                      {/* Description Font Size */}
+                      <s-select
+                        label="Description Font Size"
+                        value={descriptionFontSize}
+                        onChange={(e) => {
+                          handleFieldInput();
+                          setDescriptionFontSize(e.currentTarget.value);
+                        }}
+                      >
+                        <s-option value="12px">Small (12px)</s-option>
+                        <s-option value="13px">Medium Small (13px)</s-option>
+                        <s-option value="14px">Standard (14px)</s-option>
+                        <s-option value="16px">Large (16px)</s-option>
+                        <s-option value="18px">Extra Large (18px)</s-option>
+                      </s-select>
+
+                      {/* Group 3: Form Fields & Inputs */}
+                      <s-heading level="4" style={{ color: "#6d7175", fontSize: "11px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: "16px" }}>
+                        Form Fields & Inputs
+                      </s-heading>
+
+                      {/* Label Color */}
+                      <s-stack gap="small">
+                        <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
+                          Field Label Color
+                        </s-text>
+                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
+                          <input
+                            type="color"
+                            value={labelColor}
+                            onChange={(e) => {
+                              handleFieldInput();
+                              setLabelColor(e.target.value);
+                            }}
+                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
+                          />
+                        </div>
+                        <s-text-field
+                          value={labelColor}
+                          onInput={handleFieldInput}
+                          onChange={(e) => setLabelColor(e.currentTarget.value)}
+                        />
+                      </s-stack>
+
+                      {/* Label Font Size */}
+                      <s-select
+                        label="Field Label Font Size"
+                        value={labelFontSize}
+                        onChange={(e) => {
+                          handleFieldInput();
+                          setLabelFontSize(e.currentTarget.value);
+                        }}
+                      >
+                        <s-option value="12px">Small (12px)</s-option>
+                        <s-option value="13px">Medium Small (13px)</s-option>
+                        <s-option value="14px">Standard (14px)</s-option>
+                        <s-option value="15px">Medium Large (15px)</s-option>
+                        <s-option value="16px">Large (16px)</s-option>
+                      </s-select>
+
+                      {/* Input Background Color */}
+                      <s-stack gap="small">
+                        <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
+                          Input Background Color
+                        </s-text>
+                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
+                          <input
+                            type="color"
+                            value={inputBgColor}
+                            onChange={(e) => {
+                              handleFieldInput();
+                              setInputBgColor(e.target.value);
+                            }}
+                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
+                          />
+                        </div>
+                        <s-text-field
+                          value={inputBgColor}
+                          onInput={handleFieldInput}
+                          onChange={(e) => setInputBgColor(e.currentTarget.value)}
+                        />
+                      </s-stack>
+
+                      {/* Input Text Color */}
+                      <s-stack gap="small">
+                        <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
+                          Input Text Color
+                        </s-text>
+                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
+                          <input
+                            type="color"
+                            value={inputTextColor}
+                            onChange={(e) => {
+                              handleFieldInput();
+                              setInputTextColor(e.target.value);
+                            }}
+                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
+                          />
+                        </div>
+                        <s-text-field
+                          value={inputTextColor}
+                          onInput={handleFieldInput}
+                          onChange={(e) => setInputTextColor(e.currentTarget.value)}
+                        />
+                      </s-stack>
+
+                      {/* Input Border Color */}
+                      <s-stack gap="small">
+                        <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
+                          Input Border Color
+                        </s-text>
+                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
+                          <input
+                            type="color"
+                            value={inputBorderColor}
+                            onChange={(e) => {
+                              handleFieldInput();
+                              setInputBorderColor(e.target.value);
+                            }}
+                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
+                          />
+                        </div>
+                        <s-text-field
+                          value={inputBorderColor}
+                          onInput={handleFieldInput}
+                          onChange={(e) => setInputBorderColor(e.currentTarget.value)}
+                        />
+                      </s-stack>
+
+                      {/* Group 4: Buttons & Interactions */}
+                      <s-heading level="4" style={{ color: "#6d7175", fontSize: "11px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: "16px" }}>
+                        Buttons & Actions
+                      </s-heading>
+
+                      {/* Primary Brand Color (Submit Button Background) */}
+                      <s-stack gap="small">
+                        <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
+                          Button Background Color (Primary Color)
+                        </s-text>
+                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
+                          <input
+                            type="color"
+                            value={primaryColor}
+                            onChange={(e) => {
+                              handleFieldInput();
+                              setPrimaryColor(e.target.value);
+                            }}
+                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
+                          />
+                        </div>
+                        <s-text-field
+                          value={primaryColor}
+                          onInput={handleFieldInput}
+                          onChange={(e) => setPrimaryColor(e.currentTarget.value)}
+                        />
+                      </s-stack>
+
+                      {/* Button Text Color */}
+                      <s-stack gap="small">
+                        <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
+                          Button Text Color
+                        </s-text>
+                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
+                          <input
+                            type="color"
+                            value={btnTextColor}
+                            onChange={(e) => {
+                              handleFieldInput();
+                              setBtnTextColor(e.target.value);
+                            }}
+                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
+                          />
+                        </div>
+                        <s-text-field
+                          value={btnTextColor}
+                          onInput={handleFieldInput}
+                          onChange={(e) => setBtnTextColor(e.currentTarget.value)}
+                        />
+                      </s-stack>
+                    </s-stack>
+                  </s-section>
+                )}
+
+                {activeTab === "after-submit" && (
+                  <s-section>
+                    <s-stack gap="base" style={{ padding: "8px 0" }}>
+                      <s-heading
+                        level="3"
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: "600",
+                          color: "#202223",
+                        }}
+                      >
+                        After submit
+                      </s-heading>
+
+                      {/* Action Select Web Component */}
+                      <s-select
+                        label="Action"
+                        value={afterSubmitAction}
+                        onChange={(e) =>
+                          setAfterSubmitAction(e.currentTarget.value)
+                        }
+                      >
+                        <s-option value="successful" >Show successful message</s-option>
+                        <s-option value="clear">Clear form</s-option>
+                        <s-option value="redirect">Redirect to page</s-option>
+                        {/* <s-option value="hide">Hide form</s-option> */}
+                      </s-select>
+
+                      {afterSubmitAction === "redirect" && (
+                        <s-text-field
+                          label="Redirect URL"
+                          value={redirectUrl}
+                          onChange={(e) => setRedirectUrl(e.currentTarget.value)}
+                          placeholder="e.g. /pages/thank-you"
+                          details="URL where customers will be redirected on successful submission"
+                        ></s-text-field>
+                      )}
+
+                      {afterSubmitAction === "successful" && (
+                        <>
+                          {/* Title Input Web Component */}
+                          <div style={{ position: "relative" }}>
+                            <s-text-field
+                              label="Title"
+                              value={successTitle}
+                              onChange={(e) => setSuccessTitle(e.currentTarget.value)}
+                            ></s-text-field>
+
+                          </div>
+
+                          {/* Message Editor using Spruce structures */}
+                          <s-stack gap="small">
+                            <s-stack
+                              direction="inline"
+                              justifyContent="space-between"
+                              alignItems="center"
+                            >
+                              <s-text
+                                style={{
+                                  fontSize: "12px",
+                                  color: "#6d7175",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                Message
+                              </s-text>
+                              {/* DB symbol icon */}
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#6d7175"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                style={{ cursor: "pointer" }}
+                              >
+                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                <path d="M3 5V19A9 3 0 0 0 21 19V5"></path>
+                                <path d="M3 12A9 3 0 0 0 21 12"></path>
+                              </svg>
+                            </s-stack>
+
                             <div
                               style={{
-                                display: "flex",
-                                background: "#f1f2f4",
-                                borderRadius: "8px",
-                                padding: "3px",
                                 border: "1px solid #bbc3c9",
+                                borderRadius: "6px",
+                                overflow: "hidden",
+                                boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
                               }}
                             >
-                              {["33%", "50%", "100%"].map((w) => {
-                                const isActive =
-                                  selectedField.columnWidth === w ||
-                                  (!selectedField.columnWidth && w === "50%");
-                                return (
-                                  <button
-                                    key={w}
-                                    onClick={() =>
-                                      updateSelectedField("columnWidth", w)
-                                    }
-                                    style={{
-                                      flex: 1,
-                                      border: "none",
-                                      background: isActive
-                                        ? "#ffffff"
-                                        : "transparent",
-                                      borderRadius: "6px",
-                                      padding: "6px 0",
-                                      fontSize: "13px",
-                                      fontWeight: isActive ? "600" : "400",
-                                      color: isActive ? "#202223" : "#6d7175",
-                                      boxShadow: isActive
-                                        ? "0 1px 3px rgba(0,0,0,0.1)"
-                                        : "none",
-                                      cursor: "pointer",
-                                      transition: "all 0.15s ease",
-                                    }}
-                                  >
-                                    {w}
-                                  </button>
-                                );
-                              })}
+                              <Editor
+                                value={successMessage}
+                                onChange={(e) => setSuccessMessage(e.target.value)}
+                                style={{
+                                  minHeight: "140px",
+                                  fontSize: "14px",
+                                  color: "#202223",
+                                  lineHeight: "1.5",
+                                  fontFamily: "inherit",
+                                }}
+                              />
                             </div>
                           </s-stack>
+                        </>
+                      )}
+                    </s-stack>
+                  </s-section>
+                )}
 
-                          <s-divider></s-divider>
-
-                          <s-button
-                            variant="secondary"
-                            tone="critical"
-                            onClick={() => deleteField(selectedField.id)}
-                            style={{ width: "100%" }}
-                          >
-                            Delete Field
-                          </s-button>
-                        </s-stack>
-                      </s-stack>
-                    </s-section>
-                  )}
-                </>
-              )}
-
-              {activeTab === "appearance" && (
-                <s-section>
+                {activeTab === "mail" && (
                   <s-stack gap="base">
-                    <s-heading level="3">Appearance settings</s-heading>
-
-                    <s-stack gap="small">
-                      <s-text style={{ fontSize: "12px", color: "#6d7175" }}>
-                        Primary Brand Color
-                      </s-text>
-                      <s-stack direction="inline" gap="small">
-                        <input
-                          type="color"
-                          value={primaryColor}
-                          onChange={(e) => setPrimaryColor(e.target.value)}
-                          style={{
-                            width: "42px",
-                            height: "38px",
-                            padding: "0",
-                            border: "1px solid #bbc3c9",
-                            cursor: "pointer",
-                          }}
-                        />
-                        <s-text-field
-                          value={primaryColor}
-                          onChange={(e) =>
-                            setPrimaryColor(e.currentTarget.value)
-                          }
-                          style={{ flex: 1 }}
-                        ></s-text-field>
-                      </s-stack>
-                    </s-stack>
-
-                    <s-select
-                      label="Border Radius"
-                      value={borderRadius}
-                      onChange={(e) => setBorderRadius(e.currentTarget.value)}
-                    >
-                      <s-option value="0px">Square (0px)</s-option>
-                      <s-option value="4px">Soft (4px)</s-option>
-                      <s-option value="8px">Standard (8px)</s-option>
-                      <s-option value="16px">Rounded (16px)</s-option>
-                      <s-option value="30px">Pill (30px)</s-option>
-                    </s-select>
-
-                    <s-select
-                      label="Font Family"
-                      value={fontFamily}
-                      onChange={(e) => setFontFamily(e.currentTarget.value)}
-                    >
-                      <s-option value="Inter, sans-serif">Inter</s-option>
-                      <s-option value="Outfit, sans-serif">Outfit</s-option>
-                      <s-option value="system-ui, sans-serif">
-                        System UI
-                      </s-option>
-                      <s-option value="Georgia, serif">Georgia</s-option>
-                    </s-select>
-
-                    <s-stack gap="small">
-                      <s-text style={{ fontSize: "12px", color: "#6d7175" }}>
-                        Form Background
-                      </s-text>
-                      <s-stack direction="inline" gap="small">
-                        <input
-                          type="color"
-                          value={backgroundColor}
-                          onChange={(e) => setBackgroundColor(e.target.value)}
-                          style={{
-                            width: "42px",
-                            height: "38px",
-                            padding: "0",
-                            border: "1px solid #bbc3c9",
-                            cursor: "pointer",
-                          }}
-                        />
-                        <s-text-field
-                          value={backgroundColor}
-                          onChange={(e) =>
-                            setBackgroundColor(e.currentTarget.value)
-                          }
-                          style={{ flex: 1 }}
-                        ></s-text-field>
-                      </s-stack>
-                    </s-stack>
-                  </s-stack>
-                </s-section>
-              )}
-
-              {activeTab === "after-submit" && (
-                <s-section>
-                  <s-stack gap="base" style={{ padding: "8px 0" }}>
-                    <s-heading
-                      level="3"
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: "600",
-                        color: "#202223",
-                      }}
-                    >
-                      After submit
-                    </s-heading>
-
-                    {/* Action Select Web Component */}
-                    <s-select
-                      label="Action"
-                      value={afterSubmitAction}
-                      onChange={(e) =>
-                        setAfterSubmitAction(e.currentTarget.value)
-                      }
-                    >
-                      <s-option value="clear">Clear form</s-option>
-                      <s-option value="redirect">Redirect to page</s-option>
-                      <s-option value="hide">Hide form</s-option>
-                    </s-select>
-
-                    {/* Title Input Web Component */}
-                    <div style={{ position: "relative" }}>
-                      <s-text-field
-                        label="Title"
-                        value={successTitle}
-                        onChange={(e) => setSuccessTitle(e.currentTarget.value)}
-                      ></s-text-field>
-                      <span
-                        style={{
-                          position: "absolute",
-                          right: "12px",
-                          bottom: "10px",
-                          fontSize: "13px",
-                          color: "#8c9196",
-                          pointerEvents: "none",
-                          fontWeight: "450",
-                          zIndex: 10,
-                        }}
-                      >
-                        en
-                      </span>
-                    </div>
-
-                    {/* Discount Input Web Component */}
-                    {/* <s-text-field
-                                    label="Discount (Optional)"
-                                    value={afterSubmitDiscount}
-                                    onChange={(e) => setAfterSubmitDiscount(e.currentTarget.value)}
-                                ></s-text-field> */}
-
-                    {/* Message Editor using Spruce structures */}
-                    <s-stack gap="small">
-                      <s-stack
-                        direction="inline"
-                        justifyContent="space-between"
-                        alignItems="center"
-                      >
+                    {!activeEmailTemplate ? (
+                      <s-section gap="base">
+                        {/* <s-heading level="3">Mail &amp; Notifications</s-heading> */}
                         <s-text
-                          style={{
-                            fontSize: "12px",
-                            color: "#6d7175",
-                            fontWeight: "500",
-                          }}
+
                         >
-                          Message
+                          {config.mailDescription}
                         </s-text>
-                        {/* DB symbol icon */}
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#6d7175"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          style={{ cursor: "pointer" }}
-                        >
-                          <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                          <path d="M3 5V19A9 3 0 0 0 21 19V5"></path>
-                          <path d="M3 12A9 3 0 0 0 21 12"></path>
-                        </svg>
-                      </s-stack>
 
-                      <div
-                        style={{
-                          border: "1px solid #bbc3c9",
-                          borderRadius: "6px",
-                          overflow: "hidden",
-                          boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                        }}
-                      >
-                        <Editor
-                          value={successMessage}
-                          onChange={(e) => setSuccessMessage(e.target.value)}
-                          style={{
-                            minHeight: "140px",
-                            fontSize: "14px",
-                            color: "#202223",
-                            lineHeight: "1.5",
-                            fontFamily: "inherit",
-                          }}
-                        />
-                      </div>
-                    </s-stack>
-                  </s-stack>
-                </s-section>
-              )}
 
-              {activeTab === "mail" && (
-                <s-stack gap="base">
-                  {!activeEmailTemplate ? (
-                    <s-section gap="base">
-                      <s-heading level="3">Mail &amp; Notifications</s-heading>
-                      <s-text
-                        style={{
-                          fontSize: "12px",
-                          color: "#6d7175",
-                          lineHeight: "1.4",
-                        }}
-                      >
-                        {config.mailDescription}
-                      </s-text>
-
-                      <div style={{ marginTop: "12px" }}>
                         <s-heading
                           level="4"
-                          style={{
-                            fontSize: "11px",
-                            fontWeight: "700",
-                            color: "#6d7175",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.5px",
-                            marginBottom: "8px",
-                          }}
+                          padding="base"
                         >
                           Email to Customers
                         </s-heading>
@@ -1644,47 +2779,49 @@ export default function FormBuilder({ config, existingForm = null }) {
                               </svg>
                             ),
                           },
-                          {
-                            key: "approved",
-                            label: "Application approved",
-                            desc: "Sent when admin approves the application",
-                            icon: (
-                              <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                <polyline points="9 11 11 13 15 9" />
-                              </svg>
-                            ),
-                          },
-                          {
-                            key: "rejected",
-                            label: "Application rejected",
-                            desc: "Sent when admin rejects the application",
-                            icon: (
-                              <svg
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="15" y1="9" x2="9" y2="15" />
-                                <line x1="9" y1="9" x2="15" y2="15" />
-                              </svg>
-                            ),
-                          },
+                          ...(formCategory === "b2b" ? [
+                            {
+                              key: "approved",
+                              label: "Application approved",
+                              desc: "Sent when admin approves the application",
+                              icon: (
+                                <svg
+                                  width="18"
+                                  height="18"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                  <polyline points="9 11 11 13 15 9" />
+                                </svg>
+                              ),
+                            },
+                            {
+                              key: "rejected",
+                              label: "Application rejected",
+                              desc: "Sent when admin rejects the application",
+                              icon: (
+                                <svg
+                                  width="18"
+                                  height="18"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <circle cx="12" cy="12" r="10" />
+                                  <line x1="15" y1="9" x2="9" y2="15" />
+                                  <line x1="9" y1="9" x2="15" y2="15" />
+                                </svg>
+                              ),
+                            },
+                          ] : []),
                         ].map((item) => {
                           const isEnabled =
                             emailTemplates[item.key].enabled === "enabled";
@@ -1734,319 +2871,274 @@ export default function FormBuilder({ config, existingForm = null }) {
                             </div>
                           );
                         })}
-                      </div>
 
-                      <div style={{ marginTop: "16px" }}>
-                        <s-heading
-                          level="4"
-                          style={{
-                            fontSize: "11px",
-                            fontWeight: "700",
-                            color: "#6d7175",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.5px",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          Email to Store Admin
-                        </s-heading>
-                        {(() => {
-                          const isAdminEnabled =
-                            emailTemplates.admin.enabled === "enabled";
-                          return (
-                            <div
-                              className="email-template-card"
-                              onClick={() => setActiveEmailTemplate("admin")}
-                            >
-                              <div className="email-template-card-icon">
-                                <svg
-                                  width="18"
-                                  height="18"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                                </svg>
-                              </div>
-                              <div className="email-template-card-info">
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <span className="email-template-card-title">
-                                    Application received
-                                  </span>
-                                  <span
-                                    className={`email-status-badge ${isAdminEnabled ? "enabled" : "disabled"}`}
-                                  >
-                                    {isAdminEnabled ? "Enabled" : "Disabled"}
-                                  </span>
-                                </div>
-                                <div className="email-template-card-desc">
-                                  Sent to store admin on new submissions
-                                </div>
-                              </div>
-                              <div className="email-template-card-chevron">
-                                <svg
-                                  width="18"
-                                  height="18"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg>
-                              </div>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </s-section>
-                  ) : (
-                    <s-section gap="base">
-                      <div className="email-edit-header">
-                        <button
-                          type="button"
-                          className="email-back-btn"
-                          onClick={() => setActiveEmailTemplate(null)}
-                          aria-label="Go back"
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <line x1="19" y1="12" x2="5" y2="12"></line>
-                            <polyline points="12 19 5 12 12 5"></polyline>
-                          </svg>
-                        </button>
-                        <div className="email-header-text">
-                          <div className="email-header-breadcrumb">
-                            Mail &amp; Notifications / Template
-                          </div>
+
+                        <div style={{ marginTop: "16px" }}>
                           <s-heading
-                            level="3"
+                            level="4"
                             style={{
-                              fontSize: "16px",
-                              fontWeight: "600",
-                              color: "#202223",
+                              fontSize: "11px",
+                              fontWeight: "700",
+                              color: "#6d7175",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px",
+                              marginBottom: "8px",
                             }}
                           >
-                            {activeEmailTemplate === "submitted"
-                              ? "Application Submitted"
-                              : activeEmailTemplate === "approved"
-                                ? "Application Approved"
-                                : activeEmailTemplate === "rejected"
-                                  ? "Application Rejected"
-                                  : "Application Received"}
+                            Email to Store Admin
                           </s-heading>
+                          {(() => {
+                            const isAdminEnabled =
+                              emailTemplates.admin.enabled === "enabled";
+                            return (
+                              <div
+                                className="email-template-card"
+                                onClick={() => setActiveEmailTemplate("admin")}
+                              >
+                                <div className="email-template-card-icon">
+                                  <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                                  </svg>
+                                </div>
+                                <div className="email-template-card-info">
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <span className="email-template-card-title">
+                                      Application received
+                                    </span>
+                                    <span
+                                      className={`email-status-badge ${isAdminEnabled ? "enabled" : "disabled"}`}
+                                    >
+                                      {isAdminEnabled ? "Enabled" : "Disabled"}
+                                    </span>
+                                  </div>
+                                  <div className="email-template-card-desc">
+                                    Sent to store admin on new submissions
+                                  </div>
+                                </div>
+                                <div className="email-template-card-chevron">
+                                  <svg
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                  </svg>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
-                      </div>
-
-                      <s-select
-                        label="Email notifications"
-                        value={emailTemplates[activeEmailTemplate].enabled}
-                        onChange={(e) =>
-                          updateEmailTemplate(
-                            activeEmailTemplate,
-                            "enabled",
-                            e.currentTarget.value,
-                          )
-                        }
-                      >
-                        <s-option value="disabled">Disabled</s-option>
-                        <s-option value="enabled">Enabled</s-option>
-                      </s-select>
-
-                      <s-text-field
-                        label="Reply to"
-                        placeholder="e.g. support@example.com"
-                        value={emailTemplates[activeEmailTemplate].replyTo}
-                        onChange={(e) =>
-                          updateEmailTemplate(
-                            activeEmailTemplate,
-                            "replyTo",
-                            e.currentTarget.value,
-                          )
-                        }
-                        details="Customer replies will be sent here"
-                      ></s-text-field>
-
-                      <s-text-field
-                        label="Subject"
-                        value={emailTemplates[activeEmailTemplate].subject}
-                        onChange={(e) =>
-                          updateEmailTemplate(
-                            activeEmailTemplate,
-                            "subject",
-                            e.currentTarget.value,
-                          )
-                        }
-                      ></s-text-field>
-
-                      <s-stack gap="small">
-                        <s-text
-                          style={{
-                            fontSize: "12px",
-                            color: "#6d7175",
-                            fontWeight: "500",
-                          }}
-                        >
-                          Email Body
-                        </s-text>
-                        <div
-                          style={{
-                            border: "1px solid #bbc3c9",
-                            borderRadius: "6px",
-                            overflow: "hidden",
-                            boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                          }}
-                        >
-                          <Editor
-                            value={emailTemplates[activeEmailTemplate].body}
-                            onChange={(e) =>
-                              updateEmailTemplate(
-                                activeEmailTemplate,
-                                "body",
-                                e.target.value,
-                              )
-                            }
-                            style={{
-                              minHeight: "200px",
-                              fontSize: "14px",
-                              color: "#202223",
-                              lineHeight: "1.6",
-                              fontFamily: "inherit",
-                            }}
-                          />
-                        </div>
-                      </s-stack>
-
-                      <div className="variables-helper-container">
-                        <div className="variables-helper-title">
-                          Available Personalization Tokens
-                        </div>
-                        <div className="variables-helper-desc">
-                          Click any token to copy and insert it into your email
-                          subject or body:
-                        </div>
-                        <div className="variables-chips-grid">
-                          {[
-                            { token: "{{firstName}}", label: "First Name" },
-                            { token: "{{lastName}}", label: "Last Name" },
-                            { token: "{{email}}", label: "Customer Email" },
-                            { token: "{{companyName}}", label: "Company Name" },
-                            { token: "{{storeName}}", label: "Store Name" },
-                          ].map((item) => (
-                            <button
-                              key={item.token}
-                              type="button"
-                              className="variable-chip"
-                              onClick={() => {
-                                navigator.clipboard.writeText(item.token);
-                                triggerToast(
-                                  `Copied ${item.token} to clipboard!`,
-                                );
-                              }}
-                              title={`Copy ${item.token}`}
+                      </s-section>
+                    ) : (
+                      <s-section gap="base">
+                        <div className="email-edit-header">
+                          <button
+                            type="button"
+                            className="email-back-btn"
+                            onClick={() => setActiveEmailTemplate(null)}
+                            aria-label="Go back"
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
                             >
-                              <span className="variable-chip-token">
-                                {item.token}
-                              </span>
-                              <span className="variable-chip-label">
-                                {item.label}
-                              </span>
-                            </button>
-                          ))}
+                              <line x1="19" y1="12" x2="5" y2="12"></line>
+                              <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                          </button>
+                          <div className="email-header-text">
+                            {/* <div className="email-header-breadcrumb">
+                              Mail &amp; Notifications / Template
+                            </div> */}
+                            <s-heading
+                              level="3"
+                              style={{
+                                fontSize: "16px",
+                                fontWeight: "600",
+                                color: "#202223",
+                              }}
+                            >
+                              {activeEmailTemplate === "submitted"
+                                ? "Application Submitted"
+                                : activeEmailTemplate === "approved"
+                                  ? "Application Approved"
+                                  : activeEmailTemplate === "rejected"
+                                    ? "Application Rejected"
+                                    : "Application Received"}
+                            </s-heading>
+                          </div>
                         </div>
-                      </div>
-                    </s-section>
-                  )}
-                </s-stack>
-              )}
 
-              {activeTab === "integration" && (
-                <s-stack gap="base">
-                  <s-heading level="3">Integrations & Syncing</s-heading>
-                  <s-text
-                    style={{
-                      fontSize: "12px",
-                      color: "#6d7175",
-                      lineHeight: "1.4",
-                    }}
-                  >
-                    Connect the registration form data directly with your
-                    Shopify storefront backend.
-                  </s-text>
+                        <s-select
+                          label="Email notifications"
+                          value={emailTemplates[activeEmailTemplate].enabled}
+                          onChange={(e) =>
+                            updateEmailTemplate(
+                              activeEmailTemplate,
+                              "enabled",
+                              e.currentTarget.value,
+                            )
+                          }
+                        >
+                          <s-option value="disabled">Disabled</s-option>
+                          <s-option value="enabled">Enabled</s-option>
+                        </s-select>
 
-                  <s-text-field
-                    label="Apply Customer Tags"
-                    value={customerTag}
-                    onChange={(e) => setCustomerTag(e.currentTarget.value)}
-                    details="Comma separated tags to assign to the registered customer account."
-                  ></s-text-field>
+                        <s-text-field
+                          label="Reply to"
+                          placeholder="e.g. support@example.com"
+                          value={emailTemplates[activeEmailTemplate].replyTo}
+                          onChange={(e) =>
+                            updateEmailTemplate(
+                              activeEmailTemplate,
+                              "replyTo",
+                              e.currentTarget.value,
+                            )
+                          }
+                          details="Customer replies will be sent here"
+                        ></s-text-field>
 
-                  <s-stack
-                    direction="inline"
-                    gap="small"
-                    alignItems="center"
-                    style={{ marginTop: "8px" }}
-                  >
-                    <input
-                      type="checkbox"
-                      id="sync-metafield"
-                      checked={syncMetafields}
-                      onChange={(e) => setSyncMetafields(e.target.checked)}
+                        <s-text-field
+                          label="Subject"
+                          value={emailTemplates[activeEmailTemplate].subject}
+                          onChange={(e) =>
+                            updateEmailTemplate(
+                              activeEmailTemplate,
+                              "subject",
+                              e.currentTarget.value,
+                            )
+                          }
+                        ></s-text-field>
+
+                        <s-stack gap="small">
+                          <s-text
+                            style={{
+                              fontSize: "12px",
+                              color: "#6d7175",
+                              fontWeight: "500",
+                            }}
+                          >
+                            Email Body
+                          </s-text>
+                          <div
+                            style={{
+                              border: "1px solid #bbc3c9",
+                              borderRadius: "6px",
+                              overflow: "hidden",
+                              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                            }}
+                          >
+                            <Editor
+                              value={emailTemplates[activeEmailTemplate].body}
+                              onChange={(e) =>
+                                updateEmailTemplate(
+                                  activeEmailTemplate,
+                                  "body",
+                                  e.target.value,
+                                )
+                              }
+                              style={{
+                                minHeight: "200px",
+                                fontSize: "14px",
+                                color: "#202223",
+                                lineHeight: "1.6",
+                                fontFamily: "inherit",
+                              }}
+                            />
+                          </div>
+                        </s-stack>
+
+                        <div className="variables-helper-container">
+                          <div className="variables-helper-title">
+                            Available Personalization Tokens
+                          </div>
+                          <div className="variables-helper-desc">
+                            Click any token to copy and insert it into your email
+                            subject or body:
+                          </div>
+                          <div className="variables-chips-grid">
+                            {[
+                              { token: "{{firstName}}", label: "First Name" },
+                              { token: "{{lastName}}", label: "Last Name" },
+                              { token: "{{email}}", label: "Customer Email" },
+                              { token: "{{companyName}}", label: "Company Name" },
+                              { token: "{{storeName}}", label: "Store Name" },
+                            ].map((item) => (
+                              <button
+                                key={item.token}
+                                type="button"
+                                className="variable-chip"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(item.token);
+                                  triggerToast(
+                                    `Copied ${item.token} to clipboard!`,
+                                  );
+                                }}
+                                title={`Copy ${item.token}`}
+                              >
+                                <span className="variable-chip-token">
+                                  {item.token}
+                                </span>
+                                <span className="variable-chip-label">
+                                  {item.label}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </s-section>
+                    )}
+                  </s-stack>
+                )}
+
+                {activeTab === "integration" && (
+                  <s-stack gap="base">
+                    <s-heading level="3">Integrations & Syncing</s-heading>
+                    <s-text
                       style={{
-                        width: "16px",
-                        height: "16px",
-                        accentColor: "#008060",
-                        cursor: "pointer",
-                      }}
-                    />
-                    <label
-                      htmlFor="sync-metafield"
-                      style={{
-                        fontSize: "13px",
-                        color: "#202223",
-                        cursor: "pointer",
+                        fontSize: "12px",
+                        color: "#6d7175",
+                        lineHeight: "1.4",
                       }}
                     >
-                      Sync details to customer metafields
-                    </label>
-                  </s-stack>
-                </s-stack>
-              )}
+                      Connect the registration form data directly with your
+                      Shopify storefront backend.
+                    </s-text>
 
-              {activeTab === "settings" && (
-                <s-section>
-                  <s-stack gap="base">
-                    <s-heading level="3">General Settings</s-heading>
-
-                    <s-stack gap="small">
-                      <s-text style={{ fontSize: "12px", color: "#6d7175" }}>
-                        Success Message Heading
-                      </s-text>
+                    {formCategory === "b2b" && (
                       <s-text-field
-                        value={successTitle}
-                        onChange={(e) => setSuccessTitle(e.currentTarget.value)}
+                        label="Apply Customer Tags"
+                        value={customerTag}
+                        onChange={(e) => setCustomerTag(e.currentTarget.value)}
+                        details="Comma separated tags to assign to the registered customer account."
                       ></s-text-field>
-                    </s-stack>
+                    )}
 
                     <s-stack
                       direction="inline"
@@ -2056,8 +3148,9 @@ export default function FormBuilder({ config, existingForm = null }) {
                     >
                       <input
                         type="checkbox"
-                        id="auto-tag-field"
-                        defaultChecked
+                        id="sync-metafield"
+                        checked={syncMetafields}
+                        onChange={(e) => setSyncMetafields(e.target.checked)}
                         style={{
                           width: "16px",
                           height: "16px",
@@ -2066,50 +3159,317 @@ export default function FormBuilder({ config, existingForm = null }) {
                         }}
                       />
                       <label
-                        htmlFor="auto-tag-field"
+                        htmlFor="sync-metafield"
                         style={{
                           fontSize: "13px",
                           color: "#202223",
                           cursor: "pointer",
                         }}
                       >
-                        {config.autoTagLabel}
-                      </label>
-                    </s-stack>
-
-                    <s-stack direction="inline" gap="small" alignItems="center">
-                      <input
-                        type="checkbox"
-                        id="require-account-field"
-                        style={{
-                          width: "16px",
-                          height: "16px",
-                          accentColor: "#008060",
-                          cursor: "pointer",
-                        }}
-                      />
-                      <label
-                        htmlFor="require-account-field"
-                        style={{
-                          fontSize: "13px",
-                          color: "#202223",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Require customer login before submission
+                        Sync details to customer metafields
                       </label>
                     </s-stack>
                   </s-stack>
-                </s-section>
-              )}
-            </s-stack>
-          </s-section>{" "}
+                )}
+
+                {activeTab === "rules" && (
+                  <s-stack gap="base" style={{ padding: "8px 0" }}>
+                    <s-heading level="3">Conditional Rules</s-heading>
+                    <s-text style={{ fontSize: "13px", color: "#6d7175", lineHeight: "1.4" }}>
+                      Create conditional logic to show, hide, or require fields dynamically based on the inputs provided by your customers.
+                    </s-text>
+
+                    {editingRuleId === null ? (
+                      <s-stack gap="base" style={{ marginTop: "8px" }}>
+                        {rules.length === 0 ? (
+                          <s-stack
+                            style={{
+                              padding: "24px",
+                              border: "1px dashed #e1e3e5",
+                              borderRadius: "8px",
+                              textAlign: "center",
+                              background: "#fafafb",
+                            }}
+                          >
+                            <s-text >
+                              No active conditional rules for this form.
+                            </s-text>
+                            <s-stack justifyContent="center" padding="base none" >
+                              <s-button
+                                variant="secondary"
+                                onClick={() => {
+                                  setEditingRuleId("new");
+                                  setRuleField(fields[0]?.id || "");
+                                  setRuleCondition("empty");
+                                  setRuleValue("");
+                                  setRuleAction("show");
+                                  setRuleTarget(fields[0]?.id || "");
+                                }}
+                              >
+                                Add your first rule
+                              </s-button>
+                            </s-stack>
+                          </s-stack>
+                        ) : (
+                          <s-stack gap="small">
+                            {rules.map((rule, idx) => {
+                              const srcField = fields.find(f => f.id === rule.fieldId);
+                              const tgtField = fields.find(f => f.id === rule.targetFieldId);
+                              const conditionLabels = {
+                                empty: "is empty",
+                                not_empty: "is not empty",
+                                equals: "equals",
+                                contains: "contains",
+                              };
+                              const actionLabels = {
+                                show: "Show",
+                                hide: "Hide",
+                                require: "Make required",
+                                optional: "Make optional",
+                              };
+
+                              return (
+                                <div
+                                  key={rule.id || idx}
+                                  style={{
+                                    border: "1px solid #e1e3e5",
+                                    borderRadius: "8px",
+                                    padding: "12px 16px",
+                                    background: "#ffffff",
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
+                                  }}
+                                >
+                                  <s-stack gap="extra-tight" style={{ flex: 1 }}>
+                                    <s-text fontWeight="semibold" style={{ fontSize: "13px", color: "#202223" }}>
+                                      Rule {idx + 1}
+                                    </s-text>
+                                    <s-text style={{ fontSize: "12px", color: "#6d7175", lineHeight: "1.4" }}>
+                                      If <strong>{srcField?.label || srcField?.type || "Field"}</strong>{" "}
+                                      {conditionLabels[rule.condition]}{" "}
+                                      {["equals", "contains"].includes(rule.condition) && `"${rule.value}"`},{" "}
+                                      then <strong>{actionLabels[rule.action]}</strong>{" "}
+                                      <strong>{tgtField?.label || tgtField?.type || "Target Field"}</strong>.
+                                    </s-text>
+                                  </s-stack>
+                                  <s-stack direction="inline" gap="small" alignItems="center">
+                                    <s-button
+                                      variant="tertiary"
+                                      onClick={() => {
+                                        setEditingRuleId(rule.id || idx.toString());
+                                        setRuleField(rule.fieldId);
+                                        setRuleCondition(rule.condition);
+                                        setRuleValue(rule.value || "");
+                                        setRuleAction(rule.action);
+                                        setRuleTarget(rule.targetFieldId);
+                                      }}
+                                    >
+                                      Edit
+                                    </s-button>
+                                    <s-button
+                                      variant="tertiary"
+                                      tone="critical"
+                                      onClick={() => {
+                                        const newRules = rules.filter((_, i) => i !== idx);
+                                        setRules(newRules);
+                                        handleFieldInput();
+                                      }}
+                                    >
+                                      Delete
+                                    </s-button>
+                                  </s-stack>
+                                </div>
+                              );
+                            })}
+                            <s-button
+                              variant="secondary"
+                              onClick={() => {
+                                setEditingRuleId("new");
+                                setRuleField(fields[0]?.id || "");
+                                setRuleCondition("empty");
+                                setRuleValue("");
+                                setRuleAction("show");
+                                setRuleTarget(fields[0]?.id || "");
+                              }}
+                              style={{ alignSelf: "flex-start", marginTop: "8px" }}
+                            >
+                              Add another rule
+                            </s-button>
+                          </s-stack>
+                        )}
+                      </s-stack>
+                    ) : (
+                      <s-stack gap="base" style={{ border: "1px solid #e1e3e5", borderRadius: "8px", padding: "16px", background: "#ffffff", marginTop: "8px" }}>
+                        <s-heading level="4" style={{ fontSize: "14px", fontWeight: "600" }}>
+                          {editingRuleId === "new" ? "Create Rule" : "Edit Rule"}
+                        </s-heading>
+
+                        <s-stack gap="small" style={{ marginTop: "8px" }}>
+                          <s-select
+                            label="If customer fills field"
+                            value={ruleField}
+                            onChange={(e) => setRuleField(e.currentTarget.value)}
+                          >
+                            {fields.map(f => (
+                              <s-option key={f.id} value={f.id}>{f.label || f.type}</s-option>
+                            ))}
+                          </s-select>
+
+                          <s-select
+                            label="Condition"
+                            value={ruleCondition}
+                            onChange={(e) => setRuleCondition(e.currentTarget.value)}
+                          >
+                            <s-option value="empty">is empty</s-option>
+                            <s-option value="not_empty">is not empty</s-option>
+                            <s-option value="equals">equals</s-option>
+                            <s-option value="contains">contains</s-option>
+                          </s-select>
+
+                          {["equals", "contains"].includes(ruleCondition) && (
+                            <s-text-field
+                              label="Value"
+                              value={ruleValue}
+                              onChange={(e) => setRuleValue(e.currentTarget.value)}
+                              placeholder="e.g. business"
+                            />
+                          )}
+
+                          <s-select
+                            label="Then action"
+                            value={ruleAction}
+                            onChange={(e) => setRuleAction(e.currentTarget.value)}
+                          >
+                            <s-option value="show">Show field</s-option>
+                            <s-option value="hide">Hide field</s-option>
+                            <s-option value="require">Make field required</s-option>
+                            <s-option value="optional">Make field optional</s-option>
+                          </s-select>
+
+                          <s-select
+                            label="Target field"
+                            value={ruleTarget}
+                            onChange={(e) => setRuleTarget(e.currentTarget.value)}
+                          >
+                            {fields.map(f => (
+                              <s-option key={f.id} value={f.id}>{f.label || f.type}</s-option>
+                            ))}
+                          </s-select>
+
+                          <s-stack direction="inline" gap="small" style={{ marginTop: "16px" }}>
+                            <s-button
+                              variant="primary"
+                              onClick={() => {
+                                if (editingRuleId === "new") {
+                                  const newRule = {
+                                    id: "rule_" + Date.now(),
+                                    fieldId: ruleField,
+                                    condition: ruleCondition,
+                                    value: ruleValue,
+                                    action: ruleAction,
+                                    targetFieldId: ruleTarget,
+                                  };
+                                  setRules([...rules, newRule]);
+                                } else {
+                                  const newRules = rules.map((r, i) => {
+                                    if (r.id === editingRuleId || i.toString() === editingRuleId) {
+                                      return {
+                                        ...r,
+                                        fieldId: ruleField,
+                                        condition: ruleCondition,
+                                        value: ruleValue,
+                                        action: ruleAction,
+                                        targetFieldId: ruleTarget,
+                                      };
+                                    }
+                                    return r;
+                                  });
+                                  setRules(newRules);
+                                }
+                                setEditingRuleId(null);
+                                handleFieldInput();
+                              }}
+                            >
+                              Save Rule
+                            </s-button>
+                            <s-button
+                              variant="tertiary"
+                              onClick={() => setEditingRuleId(null)}
+                            >
+                              Cancel
+                            </s-button>
+                          </s-stack>
+                        </s-stack>
+                      </s-stack>
+                    )}
+                  </s-stack>
+                )}
+
+                {activeTab === "settings" && (
+                  <s-section>
+                    <s-stack gap="base">
+                      <s-heading level="3">General Settings</s-heading>
+
+                      <s-stack gap="small">
+                        <s-text style={{ fontSize: "12px", color: "#6d7175" }}>
+                          Success Message Heading
+                        </s-text>
+                        <s-text-field
+                          value={successTitle}
+                          onChange={(e) => setSuccessTitle(e.currentTarget.value)}
+                        ></s-text-field>
+                      </s-stack>
+
+                      {formCategory === "b2b" && (
+                        <s-stack gap="small" style={{ marginTop: "8px" }}>
+                          <s-text style={{ fontSize: "12px", color: "#6d7175" }}>
+                            Auto-tag customer (comma separated)
+                          </s-text>
+                          <s-text-field
+                            value={customerTag}
+                            onChange={(e) => setCustomerTag(e.currentTarget.value)}
+                            placeholder="e.g. Wholesale, B2B, Partner"
+                            details="Enter tags separated by commas to automatically assign to the customer on submission"
+                          ></s-text-field>
+                        </s-stack>
+                      )}
+
+                      <s-stack direction="inline" gap="small" alignItems="center">
+                        <input
+                          type="checkbox"
+                          id="require-account-field"
+                          style={{
+                            width: "16px",
+                            height: "16px",
+                            accentColor: "#008060",
+                            cursor: "pointer",
+                          }}
+                        />
+                        <label
+                          htmlFor="require-account-field"
+                          style={{
+                            fontSize: "13px",
+                            color: "#202223",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Require customer login before submission
+                        </label>
+                      </s-stack>
+                    </s-stack>
+                  </s-section>
+                )}
+              </s-stack>
+            </s-section>{" "}
+          </s-scroll-box>
         </s-grid-item>
 
         {/* Center / Right Area: Preview Canvas Workspace */}
-        <s-grid-item gridColumn="span 8" maxBlockSize="720px">
+        <s-grid-item gridColumn="span 8" >
           {/* Conditional Mobile Frame container */}
-          <s-scroll-box blockSize="720px" padding="none base">
+          <s-scroll-box blockSize="620px" padding="none base">
             <div className={`preview-container ${previewMode}`}>
               {previewMode === "mobile" && (
                 <div className="mobile-frame-header">
@@ -2127,11 +3487,11 @@ export default function FormBuilder({ config, existingForm = null }) {
                   borderRadius: borderRadius,
                   backgroundColor: backgroundColor,
                   minHeight: "100%",
-                  padding: "32px",
+                  padding: "15px",
                   boxSizing: "border-box",
                 }}
               >
-                {formSubmitted ? (
+                {formSubmitted || (activeTab === "after-submit" && afterSubmitAction === "successful") ? (
                   <div
                     style={{
                       display: "flex",
@@ -2226,7 +3586,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                       </div>
                     )}
 
-                    <button
+                    {/* <button
                       onClick={() => {
                         setFormSubmitted(false);
                         setActivePreviewPage(1);
@@ -2244,19 +3604,42 @@ export default function FormBuilder({ config, existingForm = null }) {
                       }}
                     >
                       Reset Form Preview
-                    </button>
+                    </button> */}
                   </div>
                 ) : (
                   <>
                     {/* Form Header */}
                     <div
+                      onClick={() => {
+                        setActiveTab("elements");
+                        setSelectedFieldId("form-header");
+                      }}
                       style={{
                         display: "flex",
                         flexDirection: "column",
                         gap: "8px",
-                        marginBottom: "28px",
+                        marginBottom: "0px",
                         textAlign: "center",
+                        cursor: "pointer",
+                        padding: "8px",
+                        borderRadius: "8px",
+                        transition: "all 0.2s ease",
+                        border: selectedFieldId === "form-header" ? "2px solid #008060" : "2px dashed transparent",
+                        background: selectedFieldId === "form-header" ? "rgba(0, 128, 96, 0.03)" : "transparent",
                       }}
+                      onMouseEnter={(e) => {
+                        if (selectedFieldId !== "form-header") {
+                          e.currentTarget.style.border = "2px dashed #008060";
+                          e.currentTarget.style.background = "rgba(0, 128, 96, 0.02)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedFieldId !== "form-header") {
+                          e.currentTarget.style.border = "2px dashed transparent";
+                          e.currentTarget.style.background = "transparent";
+                        }
+                      }}
+                      title="Click to edit form title & description"
                     >
                       <h1 className="preview-title">{formHeaderTitle}</h1>
                       <p className="preview-description">{formDescription}</p>
@@ -2423,20 +3806,42 @@ export default function FormBuilder({ config, existingForm = null }) {
                           return (
                             <div
                               key={field.id}
-                              style={{ gridColumn: gridSpan }}
+                              style={{
+                                gridColumn: gridSpan,
+                                opacity: draggedFieldId === field.id ? 0.4 : 1,
+                                transition: "opacity 0.2s ease, transform 0.2s ease",
+                              }}
+                              draggable={true}
+                              onDragStart={(e) => handleDragStart(e, field.id)}
+                              onDragOver={(e) => handleDragOver(e, field.id)}
+                              onDragEnd={handleDragEnd}
                             >
                               <div
+                                className="draggable-field-wrapper"
                                 style={{
                                   padding: "8px",
                                   border:
                                     selectedFieldId === field.id
                                       ? "1px solid #008060"
-                                      : "1px solid transparent",
-                                  borderRadius: "6px",
-                                  cursor: "pointer",
+                                      : "1px dashed #e1e3e5",
+                                  backgroundColor: selectedFieldId === field.id ? "rgba(0, 128, 96, 0.02)" : "#ffffff",
+                                  borderRadius: "8px",
+                                  cursor: "grab",
+                                  position: "relative",
                                 }}
                                 onClick={() => setSelectedFieldId(field.id)}
                               >
+                                {/* Grab Drag indicator on hover */}
+                                <div className="drag-indicator">
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#bbc3c9" strokeWidth="3" strokeLinecap="round">
+                                    <circle cx="8" cy="5" r="1" />
+                                    <circle cx="16" cy="5" r="1" />
+                                    <circle cx="8" cy="12" r="1" />
+                                    <circle cx="16" cy="12" r="1" />
+                                    <circle cx="8" cy="19" r="1" />
+                                    <circle cx="16" cy="19" r="1" />
+                                  </svg>
+                                </div>
                                 <div
                                   style={{
                                     display: "flex",
@@ -2447,9 +3852,9 @@ export default function FormBuilder({ config, existingForm = null }) {
                                   {showLabel && (
                                     <label
                                       style={{
-                                        fontSize: "13px",
+                                        fontSize: labelFontSize,
                                         fontWeight: "500",
-                                        color: "#202223",
+                                        color: labelColor,
                                         display: "block",
                                       }}
                                     >
@@ -2529,28 +3934,140 @@ export default function FormBuilder({ config, existingForm = null }) {
                                       <span>👁</span> Hidden field — not visible
                                       to users
                                     </div>
-                                  ) : field.type === "rating" ||
-                                    field.type === "feedback" ? (
+                                  ) : field.type === "rating" ? (
                                     <div
                                       style={{
                                         display: "flex",
-                                        gap: "6px",
-                                        fontSize: "20px",
-                                        color: "#ffb400",
-                                        padding: "4px 0",
+                                        flexDirection: "column",
+                                        gap: "8px",
+                                        padding: "8px 0",
                                       }}
                                     >
-                                      <span>★</span>
-                                      <span>★</span>
-                                      <span>★</span>
-                                      <span>★</span>
-                                      <span>★</span>
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          gap: "14px",
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        {[1, 2, 3, 4, 5].map((num) => {
+                                          const currentRating = previewRatings[field.id] || 0;
+                                          const isFilled = num <= currentRating;
+                                          const iconType = field.ratingIcon || "star";
+                                          return (
+                                            <div
+                                              key={num}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPreviewRatings((prev) => ({
+                                                  ...prev,
+                                                  [field.id]: currentRating === num ? 0 : num,
+                                                }));
+                                              }}
+                                              style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "center",
+                                                gap: "6px",
+                                              }}
+                                            >
+                                              {iconType === "heart" ? (
+                                                <HeartIcon filled={isFilled} size={36} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
+                                              ) : iconType === "smile" ? (
+                                                <SmileIcon filled={isFilled} size={36} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
+                                              ) : iconType === "thumb" ? (
+                                                <ThumbIcon filled={isFilled} size={36} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
+                                              ) : (
+                                                <StarIcon filled={isFilled} size={38} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
+                                              )}
+                                              {field.showNumberUnderIcon && (
+                                                <span
+                                                  style={{
+                                                    fontSize: "12px",
+                                                    color: "#6d7175",
+                                                    fontWeight: "550",
+                                                    marginTop: "2px",
+                                                  }}
+                                                >
+                                                  {num}
+                                                </span>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  ) : field.type === "feedback" ? (
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "8px",
+                                        padding: "8px 0",
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          gap: "18px",
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        {[
+                                          { emoji: "😠", label: "Very Bad" },
+                                          { emoji: "🙁", label: "Bad" },
+                                          { emoji: "😐", label: "Neutral" },
+                                          { emoji: "🙂", label: "Good" },
+                                          { emoji: "😄", label: "Excellent" },
+                                        ].map((item, idx) => {
+                                          const val = idx + 1;
+                                          const currentRating = previewRatings[field.id] || 0;
+                                          const isActive = val === currentRating;
+                                          return (
+                                            <div
+                                              key={val}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPreviewRatings((prev) => ({
+                                                  ...prev,
+                                                  [field.id]: currentRating === val ? 0 : val,
+                                                }));
+                                              }}
+                                              style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "center",
+                                                gap: "6px",
+                                                cursor: "pointer",
+                                                transform: isActive ? "scale(1.2)" : "scale(1)",
+                                                filter: isActive ? "grayscale(0%)" : "grayscale(100%)",
+                                                opacity: isActive ? 1 : 0.4,
+                                                transition: "all 0.2s ease",
+                                              }}
+                                            >
+                                              <span style={{ fontSize: "32px", lineHeight: "1" }}>{item.emoji}</span>
+                                              {field.showNumberUnderIcon && (
+                                                <span
+                                                  style={{
+                                                    fontSize: "11px",
+                                                    color: "#6d7175",
+                                                    fontWeight: "550",
+                                                    marginTop: "2px",
+                                                  }}
+                                                >
+                                                  {val}
+                                                </span>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
                                     </div>
                                   ) : field.type === "button" ? (
                                     <button
                                       style={{
                                         backgroundColor: primaryColor,
-                                        color: "#ffffff",
+                                        color: btnTextColor,
                                         border: "none",
                                         padding: "10px 16px",
                                         borderRadius: borderRadius,
@@ -2914,9 +4431,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                         </div>
                                       ))}
                                     </div>
-                                  ) : field.type === "checkboxes" ||
-                                    field.type === "radio" ||
-                                    field.type === "consent" ? (
+                                  ) : field.type === "checkboxes" || field.type === "radio" ? (
                                     <div
                                       style={{
                                         display: "flex",
@@ -2937,19 +4452,19 @@ export default function FormBuilder({ config, existingForm = null }) {
                                             display: "flex",
                                             alignItems: "center",
                                             gap: "8px",
-                                            fontSize: "13px",
-                                            color: "#202223",
+                                            fontSize: labelFontSize,
+                                            color: labelColor,
                                             cursor: "pointer",
                                           }}
                                         >
                                           <input
                                             type={
-                                              field.type === "checkboxes" ||
-                                              field.type === "consent"
+                                              field.type === "checkboxes"
                                                 ? "checkbox"
                                                 : "radio"
                                             }
                                             name={field.id}
+                                            disabled={true}
                                             style={{
                                               accentColor: primaryColor,
                                             }}
@@ -2958,13 +4473,47 @@ export default function FormBuilder({ config, existingForm = null }) {
                                         </label>
                                       ))}
                                     </div>
+                                  ) : field.type === "consent" ? (
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "8px",
+                                        padding: "4px 0",
+                                      }}
+                                    >
+                                      <label
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: "8px",
+                                          fontSize: labelFontSize,
+                                          color: labelColor,
+                                          cursor: "pointer",
+                                        }}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          name={field.id}
+                                          disabled={true}
+                                          style={{
+                                            accentColor: primaryColor,
+                                          }}
+                                        />
+                                        <span>{field.placeholder || "I agree to the terms and conditions"}</span>
+                                      </label>
+                                    </div>
                                   ) : field.type === "textarea" ? (
                                     <textarea
                                       className="field-preview-input"
                                       placeholder={field.placeholder}
+                                      readOnly={true}
                                       defaultValue={field.defaultValue || ""}
+                                      minLength={
+                                        field.limitCharacters && field.minCharacters ? field.minCharacters : undefined
+                                      }
                                       maxLength={
-                                        field.limitCharacters ? 100 : undefined
+                                        field.limitCharacters && field.maxCharacters ? field.maxCharacters : undefined
                                       }
                                       rows={3}
                                     />
@@ -2972,6 +4521,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                     field.type === "dropdown" ? (
                                     <select
                                       className="field-preview-select"
+                                      disabled={true}
                                       style={{
                                         width: "100%",
                                         height: "38px",
@@ -2979,6 +4529,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                         background: "#f6f6f7",
                                         borderRadius: "8px",
                                         padding: "0 12px",
+                                        cursor: "grab",
                                       }}
                                     >
                                       <option>
@@ -3007,11 +4558,46 @@ export default function FormBuilder({ config, existingForm = null }) {
                                     <div className="input-with-flag-container">
                                       {(field.type === "tel" ||
                                         field.type === "phone") && (
-                                        <div className="tel-flag">
-                                          🇮🇳{" "}
-                                          <span className="tel-code">+91</span>
-                                        </div>
-                                      )}
+                                          <div className="tel-flag-container">
+                                            <select
+                                              className="tel-flag-select"
+                                              value={field.defaultCountry || "IN"}
+                                              onChange={(e) => {
+                                                const newCountryCode = e.target.value;
+                                                // Update field in form builder state
+                                                setFields(
+                                                  fields.map((f) => {
+                                                    if (f.id === field.id) {
+                                                      return { ...f, defaultCountry: newCountryCode };
+                                                    }
+                                                    return f;
+                                                  })
+                                                );
+                                                handleFieldInput();
+                                              }}
+                                            >
+                                              {countriesList.map((c) => (
+                                                <option key={c.code} value={c.code}>
+                                                  {c.name} ({c.dial})
+                                                </option>
+                                              ))}
+                                            </select>
+                                            <div className="tel-flag-display">
+                                              {(() => {
+                                                const currentCountry = countriesList.find(
+                                                  (c) => c.code === (field.defaultCountry || "IN")
+                                                ) || countriesList[0];
+                                                return (
+                                                  <>
+                                                    <span style={{ fontWeight: "600", fontSize: "13px", color: "#202223" }}>{currentCountry.code}</span>
+                                                    <span className="tel-code">{currentCountry.dial}</span>
+                                                  </>
+                                                );
+                                              })()}
+                                              <span className="tel-dropdown-arrow">▼</span>
+                                            </div>
+                                          </div>
+                                        )}
                                       <input
                                         type={
                                           field.type === "phone"
@@ -3021,10 +4607,20 @@ export default function FormBuilder({ config, existingForm = null }) {
                                               : field.type
                                         }
                                         className="field-preview-input"
-                                        placeholder={field.placeholder}
+                                        placeholder={(() => {
+                                          if (field.type === "tel" || field.type === "phone") {
+                                            const basePlaceholder = field.placeholder || "12345 67890";
+                                            return basePlaceholder.replace(/^\+\d+\s*/, "");
+                                          }
+                                          return field.placeholder;
+                                        })()}
+                                        readOnly={true}
                                         defaultValue={field.defaultValue || ""}
+                                        minLength={
+                                          field.limitCharacters && field.minCharacters ? field.minCharacters : undefined
+                                        }
                                         maxLength={
-                                          field.limitCharacters ? 50 : undefined
+                                          field.limitCharacters && field.maxCharacters ? field.maxCharacters : undefined
                                         }
                                       />
                                     </div>
@@ -3048,80 +4644,181 @@ export default function FormBuilder({ config, existingForm = null }) {
                         })}
                     </div>
 
-                    {/* Navigation Buttons for Multi-page / Single-page Form */}
+                    {/* Wrapper for preview footer */}
                     <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedFieldId("form-footer");
+                      }}
                       style={{
-                        display: "flex",
-                        justifyContent:
-                          activePreviewPage > 1 ? "space-between" : "flex-end",
-                        marginTop: "32px",
-                        alignItems: "center",
+                        marginTop: "24px",
+                        padding: "12px",
+                        borderRadius: "8px",
+                        border:
+                          selectedFieldId === "form-footer"
+                            ? "1px solid #008060"
+                            : "1px dashed transparent",
+                        backgroundColor:
+                          selectedFieldId === "form-footer"
+                            ? "rgba(0, 128, 96, 0.02)"
+                            : "transparent",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedFieldId !== "form-footer") {
+                          e.currentTarget.style.borderColor = "#e1e3e5";
+                          e.currentTarget.style.backgroundColor = "#fafafa";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedFieldId !== "form-footer") {
+                          e.currentTarget.style.borderColor = "transparent";
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }
                       }}
                     >
-                      {activePreviewPage > 1 && (
-                        <button
-                          onClick={() =>
-                            setActivePreviewPage(activePreviewPage - 1)
-                          }
+                      {/* Footer text below fields in the preview canvas */}
+                      {footerText && (
+                        <div
                           style={{
-                            backgroundColor: "transparent",
-                            border: `1px solid #dcdfe3`,
-                            borderRadius: borderRadius,
-                            color: "#202223",
-                            padding: "10px 20px",
-                            cursor: "pointer",
-                            fontWeight: "500",
-                            transition: "background 0.2s",
+                            fontSize: "13px",
+                            color: "#6d7175",
+                            lineHeight: "1.5",
+                            textAlign: "left",
+                            paddingBottom: "12px",
+                            borderBottom: "1px solid #f1f1f1",
+                            marginBottom: "12px",
                           }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background = "#f6f6f7")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background = "transparent")
-                          }
                         >
-                          Back
-                        </button>
+                          {footerText}
+                        </div>
                       )}
 
-                      {activePreviewPage < pages.length ? (
-                        <button
-                          onClick={() =>
-                            setActivePreviewPage(activePreviewPage + 1)
-                          }
+                      {/* Navigation Buttons for Multi-page / Single-page Form */}
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: footerFullWidth ? "column" : "row",
+                          justifyContent: footerFullWidth ? "stretch" : (activePreviewPage > 1 ? "space-between" : "center"),
+                          gap: "12px",
+                          alignItems: footerFullWidth ? "stretch" : "center",
+                        }}
+                      >
+                        {activePreviewPage > 1 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActivePreviewPage(activePreviewPage - 1);
+                              setSelectedFieldId("form-footer");
+                            }}
+                            style={{
+                              backgroundColor: "transparent",
+                              border: `1px solid #dcdfe3`,
+                              borderRadius: borderRadius,
+                              color: "#202223",
+                              padding: "10px 20px",
+                              cursor: "pointer",
+                              fontWeight: "500",
+                              transition: "background 0.2s",
+                              width: footerFullWidth ? "100%" : "auto",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.background = "#f6f6f7")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.background = "transparent")
+                            }
+                          >
+                            {footerPreviousText || "Back"}
+                          </button>
+                        )}
+
+                        <div
                           style={{
-                            backgroundColor: primaryColor,
-                            borderRadius: borderRadius,
-                            color: "#ffffff",
-                            border: "none",
-                            padding: "10px 20px",
-                            cursor: "pointer",
-                            fontWeight: "500",
+                            display: "flex",
+                            flexDirection: footerFullWidth ? "column" : "row",
+                            gap: "8px",
+                            width: footerFullWidth ? "100%" : "auto",
+                            justifyContent: footerFullWidth ? "stretch" : (activePreviewPage > 1 ? "flex-end" : "center"),
                           }}
                         >
-                          Next
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setFormSubmitted(true);
-                            triggerToast(
-                              "Mock form submitted in preview mode!",
-                            );
-                          }}
-                          style={{
-                            backgroundColor: primaryColor,
-                            borderRadius: borderRadius,
-                            color: "#ffffff",
-                            border: "none",
-                            padding: "10px 20px",
-                            cursor: "pointer",
-                            fontWeight: "500",
-                          }}
-                        >
-                          Submit Information
-                        </button>
-                      )}
+                          {footerShowReset && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                triggerToast("Form input reset");
+                                setSelectedFieldId("form-footer");
+                              }}
+                              style={{
+                                backgroundColor: "#f6f6f7",
+                                border: `1px solid #dcdfe3`,
+                                borderRadius: borderRadius,
+                                color: "#374151",
+                                padding: "10px 20px",
+                                cursor: "pointer",
+                                fontWeight: "500",
+                                transition: "background 0.2s",
+                                width: footerFullWidth ? "100%" : "auto",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.currentTarget.style.background = "#eef0f1")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.background = "#f6f6f7")
+                              }
+                            >
+                              Reset
+                            </button>
+                          )}
+
+                          {activePreviewPage < pages.length ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActivePreviewPage(activePreviewPage + 1);
+                                setSelectedFieldId("form-footer");
+                              }}
+                              style={{
+                                backgroundColor: primaryColor,
+                                borderRadius: borderRadius,
+                                color: btnTextColor,
+                                border: "none",
+                                padding: "10px 20px",
+                                cursor: "pointer",
+                                fontWeight: "500",
+                                width: footerFullWidth ? "100%" : "auto",
+                              }}
+                            >
+                              {footerNextText || "Next"}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFormSubmitted(true);
+                                triggerToast(
+                                  "Mock form submitted in preview mode!",
+                                );
+                                setSelectedFieldId("form-footer");
+                              }}
+                              style={{
+                                backgroundColor: primaryColor,
+                                borderRadius: borderRadius,
+                                color: btnTextColor,
+                                border: "none",
+                                padding: "10px 20px",
+                                cursor: "pointer",
+                                fontWeight: "500",
+                                width: footerFullWidth ? "100%" : "auto",
+                              }}
+                            >
+                              {footerSubmitText || "Submit"}
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </>
                 )}
@@ -3177,67 +4874,65 @@ export default function FormBuilder({ config, existingForm = null }) {
               </button>
             </div>
             <div className="modal-grid">
-              {elementCategories.map((cat, idx) => (
-                <div
-                  key={idx}
-                  className={`modal-category${cat.isBusiness ? " modal-category--business" : ""}`}
-                >
+              {elementCategories
+                .filter((cat) => formCategory === "b2b" || !cat.isBusiness)
+                .map((cat, idx) => (
                   <div
-                    className={`modal-category-title${cat.isBusiness ? " modal-category-title--business" : ""}`}
+                    key={idx}
+                    className={`modal-category${cat.isBusiness ? " modal-category--business" : ""}`}
                   >
-                    {cat.isBusiness && (
-                      <span style={{ marginRight: "6px" }}>🏢</span>
-                    )}
-                    {cat.title}
-                    {cat.isBusiness && (
-                      <span
-                        style={{
-                          marginLeft: "8px",
-                          fontSize: "11px",
-                          fontWeight: "500",
-                          color: "#6d7175",
-                        }}
-                      >
-                        — fields below can only be added once
-                      </span>
-                    )}
-                  </div>
-                  {/* Business fields render in their own 4-col sub-grid */}
-                  <div className={cat.isBusiness ? "biz-items-grid" : ""}>
-                    {cat.items.map((item) => {
-                      const isInUse =
-                        item.singletonType &&
-                        fields.some(
-                          (f) => f.singletonType === item.singletonType,
-                        );
-                      return (
-                        <button
-                          key={item.id}
-                          className={`modal-item-btn${isInUse ? " modal-item-btn--disabled" : ""}`}
-                          disabled={isInUse}
-                          title={
-                            isInUse
-                              ? `"${item.label}" is already added to the form`
-                              : `Add ${item.label}`
-                          }
-                          onClick={() =>
-                            !isInUse &&
-                            addField(item.id, item.label, item.singletonType)
-                          }
+                    <div
+                      className={`modal-category-title${cat.isBusiness ? " modal-category-title--business" : ""}`}
+                    >
+                      {cat.isBusiness && (
+                        <span style={{ marginRight: "6px" }}>🏢</span>
+                      )}
+                      {cat.title}
+                      {cat.isBusiness && (
+                        <span
+                          style={{
+                            marginLeft: "8px",
+                            fontSize: "11px",
+                            fontWeight: "500",
+                            color: "#6d7175",
+                          }}
                         >
-                          <span className="modal-item-icon">{item.icon}</span>
-                          <span className="modal-item-label">{item.label}</span>
-                          {isInUse && (
-                            <span className="modal-item-in-use-badge">
-                              In use
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
+                          — fields below can only be added once
+                        </span>
+                      )}
+                    </div>
+                    {/* Business fields render in their own 4-col sub-grid */}
+                    <div className={cat.isBusiness ? "biz-items-grid" : ""}>
+                      {cat.items.map((item) => {
+                        const isInUse = isBusinessFieldInUse(item, fields);
+                        return (
+                          <button
+                            key={item.id}
+                            className={`modal-item-btn${isInUse ? " modal-item-btn--disabled" : ""}`}
+                            disabled={isInUse}
+                            title={
+                              isInUse
+                                ? `"${item.label}" is already added to the form`
+                                : `Add ${item.label}`
+                            }
+                            onClick={() =>
+                              !isInUse &&
+                              addField(item.id, item.label, item.singletonType)
+                            }
+                          >
+                            <span className="modal-item-icon">{item.icon}</span>
+                            <span className="modal-item-label">{item.label}</span>
+                            {isInUse && (
+                              <span className="modal-item-in-use-badge">
+                                In use
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         </div>
@@ -3419,7 +5114,6 @@ export default function FormBuilder({ config, existingForm = null }) {
           background: #ffffff;
           box-shadow: 0 4px 20px rgba(0,0,0,0.08);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          width: 100%;
          
           border-radius: 8px;
           border: 1px solid #e1e3e5;
@@ -3485,21 +5179,21 @@ export default function FormBuilder({ config, existingForm = null }) {
         }
 
         .preview-title {
-          font-size: 26px;
+          font-size: ${titleFontSize};
           font-weight: 700;
-          color: #202223;
-          margin-bottom: 8px;
+          color: ${titleColor};
+          margin: 0px;
           outline: none;
           border: 1px transparent dashed;
-          padding: 2px;
+          padding: 0px;
           transition: border-color 0.2s;
         }
         .preview-title:hover {
           border-color: #008060;
         }
         .preview-description {
-          font-size: 14px;
-          color: #6d7175;
+          font-size: ${descriptionFontSize};
+          color: ${descriptionColor};
           outline: none;
           border: 1px transparent dashed;
           padding: 2px;
@@ -3508,15 +5202,45 @@ export default function FormBuilder({ config, existingForm = null }) {
           border-color: #008060;
         }
 
+        .draggable-field-wrapper {
+          position: relative;
+          transition: all 0.2s ease-in-out;
+        }
+        .draggable-field-wrapper:hover {
+          background-color: #f9fafb !important;
+          border-color: #bbc3c9 !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .draggable-field-wrapper .drag-indicator {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          opacity: 0;
+          transition: opacity 0.2s ease-in-out;
+          cursor: grab;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4px;
+          background: #ffffff;
+          border-radius: 4px;
+          border: 1px solid #e1e3e5;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          z-index: 10;
+        }
+        .draggable-field-wrapper:hover .drag-indicator {
+          opacity: 1;
+        }
+
         .field-preview-input {
           width: 100%;
-          border: 1px solid #dcdfe3;
-          background: #f6f6f7;
+          border: 1px solid ${inputBorderColor};
+          background: ${inputBgColor};
           height: 38px;
           padding: 0 12px;
-          border-radius: 8px;
+          border-radius: ${borderRadius};
           font-size: 13px;
-          color: #202223;
+          color: ${inputTextColor};
           box-sizing: border-box;
         }
         textarea.field-preview-input {
@@ -3526,9 +5250,9 @@ export default function FormBuilder({ config, existingForm = null }) {
         .input-with-flag-container {
           display: flex;
           align-items: center;
-          background: #f6f6f7;
-          border: 1px solid #dcdfe3;
-          border-radius: 8px;
+          background: ${inputBgColor};
+          border: 1px solid ${inputBorderColor};
+          border-radius: ${borderRadius};
           overflow: hidden;
           width: 100%;
         }
@@ -3540,13 +5264,41 @@ export default function FormBuilder({ config, existingForm = null }) {
           flex: 1;
           padding: 0 10px;
         }
-        .tel-flag {
+        .tel-flag-container {
+          position: relative;
           display: flex;
           align-items: center;
-          gap: 4px;
-          padding-left: 10px;
+          background: #f6f6f7;
+          border-right: 1px solid ${inputBorderColor};
+          height: 38px;
+          cursor: pointer;
+        }
+        .tel-flag-select {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          opacity: 0;
+          cursor: pointer;
+          z-index: 2;
+        }
+        .tel-flag-display {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 0 10px;
           font-size: 14px;
-          color: #4a4a4a;
+          color: #202223;
+          pointer-events: none;
+          z-index: 1;
+          white-space: nowrap;
+        }
+        .tel-dropdown-arrow {
+          font-size: 8px;
+          color: #6d7175;
+          margin-left: 2px;
+          transition: transform 0.2s ease;
         }
         .tel-code {
           font-size: 11px;
