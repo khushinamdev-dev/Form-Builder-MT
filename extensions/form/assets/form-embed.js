@@ -30,9 +30,19 @@
     const reqMark = field.required
       ? ' <span class="form-builder-embed__required">*</span>'
       : "";
-    const labelStyle = field.hideLabel ? 'style="display: none;"' : '';
-    const label = `<label class="form-builder-embed__label" for="${id}" ${labelStyle}>${escapeHtml(field.label)}${reqMark}</label>`;
     const placeholder = escapeHtml(field.placeholder || "");
+
+    const br = data.borderRadius || "8px";
+    const labelColor = data.labelColor || "#202223";
+    const labelFontSize = data.labelFontSize || "14px";
+    const inputBgColor = data.inputBgColor || "#ffffff";
+    const inputTextColor = data.inputTextColor || "#202223";
+    const inputBorderColor = data.inputBorderColor || "#bbc3c9";
+    const fontFamily = data.fontFamily || "inherit";
+
+    const labelHtml = `<label class="form-builder-embed__label" for="${id}" style="display:${field.hideLabel ? 'none' : 'block'}; font-weight:500; margin-bottom:5px; font-size:${labelFontSize}; color:${labelColor}; font-family:${fontFamily};">${escapeHtml(field.label)}${reqMark}</label>`;
+
+    const inputStyle = `width:100%; padding:10px 12px; border:1px solid ${inputBorderColor}; border-radius:${br}; box-sizing:border-box; font-size:${labelFontSize}; background:${inputBgColor}; color:${inputTextColor}; outline:none; font-family:${fontFamily};`;
 
     let input = "";
     switch (field.type) {
@@ -40,7 +50,7 @@
         const opts = (field.options || ["Option 1", "Option 2"])
           .map(
             (o) =>
-              `<label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; cursor:pointer;"><input type="checkbox" name="${field.id}" value="${escapeHtml(o)}" ${required} /> ${escapeHtml(o)}</label>`
+              `<label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:${labelFontSize}; color:${inputTextColor}; cursor:pointer;"><input type="checkbox" name="${field.id}" value="${escapeHtml(o)}" ${required} style="accent-color:${data.primaryColor || "#008060"}; width:16px; height:16px;" /> ${escapeHtml(o)}</label>`
           )
           .join("");
         input = `<div class="form-builder-embed__choices" style="display:flex; flex-direction:column; gap:4px; padding:4px 0;">${opts}</div>`;
@@ -50,7 +60,7 @@
         const opts = (field.options || ["Option 1", "Option 2"])
           .map(
             (o) =>
-              `<label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; cursor:pointer;"><input type="radio" name="${field.id}" value="${escapeHtml(o)}" ${required} /> ${escapeHtml(o)}`
+              `<label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:${labelFontSize}; color:${inputTextColor}; cursor:pointer;"><input type="radio" name="${field.id}" value="${escapeHtml(o)}" ${required} style="accent-color:${data.primaryColor || "#008060"}; width:16px; height:16px;" /> ${escapeHtml(o)}</label>`
           )
           .join("");
         input = `<div class="form-builder-embed__choices" style="display:flex; flex-direction:column; gap:4px; padding:4px 0;">${opts}</div>`;
@@ -58,9 +68,9 @@
       }
       case "consent": {
         const consentText = escapeHtml(field.placeholder || "I agree to the terms and conditions");
-        input = `<div class="form-builder-embed__consent" style="display:flex; align-items:center; gap:8px; padding:4px 0;">
-          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-            <input type="checkbox" id="${id}" name="${field.id}" value="yes" ${required} />
+        input = `<div class="form-builder-embed__consent" style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:${labelFontSize}; color:${inputTextColor};">
+          <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="${id}" name="${field.id}" value="yes" ${required} style="accent-color:${data.primaryColor || "#008060"}; width:16px; height:16px; margin-top:2px;" />
             <span>${consentText}</span>
           </label>
         </div>`;
@@ -123,7 +133,7 @@
       }
       
       case "textarea":
-        input = `<textarea class="form-builder-embed__textarea" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} ${limits}></textarea>`;
+        input = `<textarea class="form-builder-embed__textarea" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} ${limits} style="${inputStyle} min-height:100px; resize:vertical;"></textarea>`;
         break;
       case "select":
       case "dropdown": {
@@ -133,70 +143,148 @@
               `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`
           )
           .join("");
-        input = `<select class="form-builder-embed__select" id="${id}" name="${field.id}" ${required}><option value="">Select…</option>${opts}</select>`;
+        input = `<select class="form-builder-embed__select" id="${id}" name="${field.id}" ${required} style="${inputStyle}"><option value="">Select…</option>${opts}</select>`;
         break;
       }
       case "email":
-        input = `<input class="form-builder-embed__input" type="email" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} ${limits} />`;
+        input = `<input class="form-builder-embed__input" type="email" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} style="${inputStyle}" ${limits} />`;
         break;
       case "tel":
       case "phone":
-        input = `<input class="form-builder-embed__input" type="tel" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} ${limits} />`;
+        input = `<input class="form-builder-embed__input" type="tel" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} style="${inputStyle}" ${limits} />`;
         break;
       case "url":
-        input = `<input class="form-builder-embed__input" type="url" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} ${limits} />`;
+        input = `<input class="form-builder-embed__input" type="url" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} style="${inputStyle}" ${limits} />`;
         break;
       case "number":
-        input = `<input class="form-builder-embed__input" type="number" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} />`;
+        input = `<input class="form-builder-embed__input" type="number" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} style="${inputStyle}" />`;
         break;
       case "file":
-        input = `<input class="form-builder-embed__input" type="file" id="${id}" name="${field.id}" ${required} />`;
+        input = `<input class="form-builder-embed__input" type="file" id="${id}" name="${field.id}" ${required} style="${inputStyle}" />`;
+        break;
+      case "heading":
+        return `<div style="margin-bottom:16px; grid-column:span 6;"><h3 style="margin:0; color:${data.titleColor || "#202223"}; font-family:${fontFamily};">${escapeHtml(field.label)}</h3></div>`;
+      case "paragraph":
+        return `<div style="margin-bottom:16px; color:${data.descriptionColor || "#6d7175"}; font-size:${data.descriptionFontSize || "14px"}; font-family:${fontFamily}; grid-column:span 6;">${escapeHtml(field.label)}</div>`;
+      case "divider":
+        return `<hr style="border:none; border-top:1px solid ${inputBorderColor}; margin:16px 0; grid-column:span 6;">`;
+      case "range":
+        input = `<input style="width:100%; accent-color:${data.primaryColor || "#008060"};" type="range" name="${field.id}" ${required}>`;
+        break;
+      case "color":
+        input = `<input style="width:60px; height:36px; border:1px solid ${inputBorderColor}; border-radius:${br}; padding:2px; background:${inputBgColor}; cursor:pointer;" type="color" name="${field.id}">`;
+        break;
+      case "switch":
+        input = `<label style="display:flex; align-items:center; gap:10px; cursor:pointer;"><input type="checkbox" name="${field.id}" style="accent-color:${data.primaryColor || "#008060"}; width:18px; height:18px;"> <span style="font-size:${labelFontSize}; color:${inputTextColor};">${escapeHtml(field.placeholder || "Toggle")}</span></label>`;
         break;
       default:
-        input = `<input class="form-builder-embed__input" type="text" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} ${limits} />`;
+        input = `<input class="form-builder-embed__input" type="text" id="${id}" name="${field.id}" placeholder="${placeholder}" ${required} style="${inputStyle}" ${limits} />`;
     }
 
-    return `<div class="form-builder-embed__field">${label}${input}</div>`;
+    const isNaturallyFull = [
+      "file",
+      "select",
+      "dropdown",
+      "textarea",
+      "heading",
+      "paragraph",
+      "divider",
+      "button",
+      "repeater",
+      "matrix",
+      "html",
+      "image-options",
+      "signature",
+      "product",
+      "feedback",
+      "hidden",
+    ].includes(field.type);
+
+    let gridSpan = "span 6";
+    if (field.columnWidth === "33%") {
+      gridSpan = "span 2";
+    } else if (field.columnWidth === "50%") {
+      gridSpan = "span 3";
+    } else if (field.columnWidth === "100%") {
+      gridSpan = "span 6";
+    } else {
+      gridSpan = isNaturallyFull ? "span 6" : "span 3";
+    }
+
+    return `<div class="form-builder-embed__field" style="grid-column:${gridSpan}; margin-bottom:8px;">${labelHtml}${input}</div>`;
   }
 
   function renderForm(container, data, proxyUrl) {
     const color = data.primaryColor || "#008060";
+    const br = data.borderRadius || "8px";
+    const fontFamily = data.fontFamily || "inherit";
+    const backgroundColor = data.backgroundColor || "#ffffff";
+    const titleColor = data.titleColor || "#202223";
+    const titleFontSize = data.titleFontSize || "26px";
+    const descriptionColor = data.descriptionColor || "#6d7175";
+    const descriptionFontSize = data.descriptionFontSize || "14px";
+    const btnTextColor = data.btnTextColor || "#ffffff";
+    const inputBorderColor = data.inputBorderColor || "#bbc3c9";
+
     const fieldsHtml = (data.fields || []).map(f => renderField(f, data)).join("");
 
     const submitText = data.footerSubmitText || "Submit";
     const showReset = !!data.footerShowReset;
     const fullWidth = !!data.footerFullWidth;
 
-    let buttonsStyle = "display: flex; gap: 12px; margin-top: 16px; justify-content: center;";
+    let buttonsStyle = `display: flex; gap: 12px; margin-top: 16px; align-items: center; flex-wrap: wrap; grid-column: span 6;`;
     if (fullWidth) {
-      buttonsStyle = "display: flex; flex-direction: column; gap: 8px; margin-top: 16px; width: 100%;";
+      buttonsStyle = `display: flex; flex-direction: column; gap: 8px; margin-top: 16px; width: 100%; grid-column: span 6;`;
     }
 
-    const submitBtnStyle = `background:${escapeHtml(color)}; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; color: #fff; cursor: pointer; text-align: center; width: ${fullWidth ? "100%" : "auto"};`;
-    const resetBtnStyle = `background: #f6f6f7; border: 1px solid #d1d5db; color: #374151; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; text-align: center; width: ${fullWidth ? "100%" : "auto"};`;
+    const submitBtnStyle = `background:${escapeHtml(color)}; color:${escapeHtml(btnTextColor)}; padding: 12px 28px; border: none; border-radius: ${br}; font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; width: ${fullWidth ? "100%" : "auto"}; font-family: ${fontFamily}; transition: opacity 0.2s;`;
+    const resetBtnStyle = `background: #f1f3f4; border: none; color: #202223; padding: 12px 28px; border-radius: ${br}; font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; width: ${fullWidth ? "100%" : "auto"}; font-family: ${fontFamily};`;
 
     const buttonsHtml = `
-      <div style="${buttonsStyle}">
+      <div class="fb-submit-container" style="${buttonsStyle}">
         ${showReset ? `<button type="reset" class="form-builder-embed__reset" style="${resetBtnStyle}">Reset</button>` : ""}
         <button type="submit" class="form-builder-embed__submit" style="${submitBtnStyle}">${escapeHtml(submitText)}</button>
       </div>
     `;
 
-    const footerTextHtml = data.footerText ? `<div class="form-builder-embed__footer-text" style="font-size: 13px; color: #6b7280; margin-top: 16px; line-height: 1.5;">${data.footerText}</div>` : "";
+    const footerTextHtml = data.footerText ? `<div class="form-builder-embed__footer-text" style="font-size: 13px; color: ${descriptionColor}; margin-top: 16px; line-height: 1.5; grid-column: span 6; font-family: ${fontFamily};">${data.footerText}</div>` : "";
+
+    const containerStyle = `font-family:${fontFamily}; max-width:620px; margin:0 auto; padding:32px; border-radius:${br}; background:${backgroundColor}; box-sizing:border-box;`;
+
+    const gridStyleBlock = `
+      <style>
+        .form-builder-embed__form {
+          display: grid !important;
+          grid-template-columns: repeat(6, 1fr) !important;
+          gap: 16px !important;
+          width: 100% !important;
+        }
+        @media (max-width: 600px) {
+          .form-builder-embed__form {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .form-builder-embed__field {
+            grid-column: span 1 !important;
+          }
+        }
+      </style>
+    `;
 
     container.innerHTML = `
-      <div class="form-builder-embed__wrapper">
+      ${gridStyleBlock}
+      <div class="form-builder-embed__wrapper" style="${containerStyle}">
         <form class="form-builder-embed__form" novalidate>
-          <h2 class="form-builder-embed__title">${escapeHtml(data.title)}</h2>
-          ${data.description ? `<p class="form-builder-embed__description">${escapeHtml(data.description)}</p>` : ""}
+          <h2 class="form-builder-embed__title" style="margin: 0 0 8px; color: ${titleColor}; font-size: ${titleFontSize}; font-family: ${fontFamily}; grid-column: span 6;">${escapeHtml(data.title)}</h2>
+          ${data.description ? `<p class="form-builder-embed__description" style="color: ${descriptionColor}; font-size: ${descriptionFontSize}; margin: 0 0 24px; font-family: ${fontFamily}; grid-column: span 6;">${escapeHtml(data.description)}</p>` : ""}
           ${fieldsHtml}
           ${footerTextHtml}
           ${buttonsHtml}
         </form>
       </div>
-      <div class="form-builder-embed__success" style="display: none; text-align: center; padding: 40px 20px; border: 1px solid #e2f1e8; background: #fbfdfc; border-radius: 8px; color: #008060; margin: 0 auto; max-width: 600px;">
-        <h3 style="margin-top:0; font-size: 20px; font-weight: 600;">${escapeHtml(data.successTitle || "Thank you!")}</h3>
-        <p style="color: #6d7175; margin-bottom: 0;">${data.successMessage || "Your submission has been received successfully."}</p>
+      <div class="form-builder-embed__success" style="display: none; text-align: center; padding: 40px 20px; border: 1px solid ${inputBorderColor}; background: ${backgroundColor}; border-radius: ${br}; color: ${color}; margin: 0 auto; max-width: 620px; font-family: ${fontFamily};">
+        <h3 style="margin-top:0; font-size: 20px; font-weight: 600; color: ${titleColor}; font-family: ${fontFamily};">${escapeHtml(data.successTitle || "Thank you!")}</h3>
+        <p style="color: ${descriptionColor}; margin-bottom: 0; font-family: ${fontFamily};">${data.successMessage || "Your submission has been received successfully."}</p>
       </div>
     `;
 

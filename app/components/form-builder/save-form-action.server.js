@@ -84,14 +84,10 @@ export async function saveFormAction({ request }) {
         footerFullWidth,
         rules: parsedRules,
         fields: parsedFields.map((f) => ({
-            id: f.id,
-            label: f.label,
-            type: f.type,
+            ...f,
             required: !!f.required,
             placeholder: f.placeholder || "",
             page: f.page || 1,
-            ...(f.options ? { options: f.options } : {}),
-            ...(f.singletonType ? { singletonType: f.singletonType } : {}),
         })),
     });
 
@@ -129,5 +125,13 @@ export async function saveFormAction({ request }) {
     if (userErrors?.length) {
         return { error: userErrors.map((e) => e.message).join(", ") };
     }
-    return redirect(`/app/form-published/${formId}?title=${encodeURIComponent(formName)}`);
+
+    const isNew = fd.get("isNew") === "true";
+    if (isNew) {
+        // New form — go to the published/success page
+        return redirect(`/app/form-published/${formId}?title=${encodeURIComponent(formName)}`);
+    }
+
+    // Editing existing form — stay on the same page
+    return { success: true, formId };
 }

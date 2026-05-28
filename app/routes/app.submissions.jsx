@@ -355,20 +355,18 @@ const Submissions = () => {
             alignItems="center"
             style={{ marginBottom: "12px" }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <s-stack direction="inline" >
               <s-text fontWeight="semibold">Filter by Form:</s-text>
-              <select
-                className="premium-select"
-                value={selectedFormFilter}
-                onChange={(e) => setSelectedFormFilter(e.target.value)}
-              >
+              <s-select value={selectedFormFilter}
+                onChange={(e) => setSelectedFormFilter(e.target.value)}>
                 {formNames.map((name) => (
-                  <option key={name} value={name}>
+                  <s-option key={name} value={name}>
                     {name}
-                  </option>
+                  </s-option>
                 ))}
-              </select>
-            </div>
+              </s-select>
+            </s-stack>
+
             <s-stack>
               <s-text tone="subdued">
                 Showing {filteredSubmissions.length} of {submissions.length} submissions
@@ -406,9 +404,9 @@ const Submissions = () => {
                     </s-table-cell>
                     <s-table-cell>
                       <s-badge tone={
-                        sub.status === "Approved" ? "success" : 
-                        sub.status === "Pending" ? "attention" : 
-                        sub.status === "Rejected" ? "critical" : "info"
+                        sub.status === "Approved" ? "success" :
+                          sub.status === "Pending" ? "attention" :
+                            sub.status === "Rejected" ? "critical" : "info"
                       }>
                         {sub.status}
                       </s-badge>

@@ -8,58 +8,58 @@ import {
 import Editor from "react-simple-wysiwyg";
 
 const countriesList = [
-  { code: "IN", name: "India", flag: "🇮🇳", dial: "+91" },
-  { code: "US", name: "United States", flag: "🇺🇸", dial: "+1" },
-  { code: "GB", name: "United Kingdom", flag: "🇬🇧", dial: "+44" },
-  { code: "CA", name: "Canada", flag: "🇨🇦", dial: "+1" },
-  { code: "AU", name: "Australia", flag: "🇦🇺", dial: "+61" },
-  { code: "NZ", name: "New Zealand", flag: "🇳🇿", dial: "+64" },
-  { code: "SG", name: "Singapore", flag: "🇸🇬", dial: "+65" },
-  { code: "AE", name: "United Arab Emirates", flag: "🇦🇪", dial: "+971" },
-  { code: "SA", name: "Saudi Arabia", flag: "🇸🇦", dial: "+966" },
-  { code: "ZA", name: "South Africa", flag: "🇿🇦", dial: "+27" },
-  { code: "DE", name: "Germany", flag: "🇩🇪", dial: "+49" },
-  { code: "FR", name: "France", flag: "🇫🇷", dial: "+33" },
-  { code: "IT", name: "Italy", flag: "🇮🇹", dial: "+39" },
-  { code: "ES", name: "Spain", flag: "🇪🇸", dial: "+34" },
-  { code: "JP", name: "Japan", flag: "🇯🇵", dial: "+81" },
-  { code: "CN", name: "China", flag: "🇨🇳", dial: "+86" },
-  { code: "BR", name: "Brazil", flag: "🇧🇷", dial: "+55" },
-  { code: "MX", name: "Mexico", flag: "🇲🇽", dial: "+52" },
-  { code: "RU", name: "Russia", flag: "🇷🇺", dial: "+7" },
-  { code: "NL", name: "Netherlands", flag: "🇳🇱", dial: "+31" },
-  { code: "CH", name: "Switzerland", flag: "🇨🇭", dial: "+41" },
-  { code: "SE", name: "Sweden", flag: "🇸🇪", dial: "+46" },
-  { code: "NO", name: "Norway", flag: "🇳🇴", dial: "+47" },
-  { code: "FI", name: "Finland", flag: "🇫🇮", dial: "+358" },
-  { code: "DK", name: "Denmark", flag: "🇩🇰", dial: "+45" },
-  { code: "IE", name: "Ireland", flag: "🇮🇪", dial: "+353" },
-  { code: "HK", name: "Hong Kong", flag: "🇭🇰", dial: "+852" },
-  { code: "MY", name: "Malaysia", flag: "🇲🇾", dial: "+60" },
-  { code: "TH", name: "Thailand", flag: "🇹🇭", dial: "+66" },
-  { code: "PH", name: "Philippines", flag: "🇵🇭", dial: "+63" },
-  { code: "ID", name: "Indonesia", flag: "🇮🇩", dial: "+62" },
-  { code: "VN", name: "Vietnam", flag: "🇻🇳", dial: "+84" },
-  { code: "KR", name: "South Korea", flag: "🇰🇷", dial: "+82" },
-  { code: "TR", name: "Turkey", flag: "🇹🇷", dial: "+90" },
-  { code: "PK", name: "Pakistan", flag: "🇵🇰", dial: "+92" },
-  { code: "BD", name: "Bangladesh", flag: "🇧🇩", dial: "+880" },
-  { code: "LK", name: "Sri Lanka", flag: "🇱🇰", dial: "+94" },
-  { code: "NP", name: "Nepal", flag: "🇳🇵", dial: "+977" },
-  { code: "EG", name: "Egypt", flag: "🇪🇬", dial: "+20" },
-  { code: "NG", name: "Nigeria", flag: "🇳🇬", dial: "+234" },
-  { code: "KE", name: "Kenya", flag: "🇰🇪", dial: "+254" },
-  { code: "AR", name: "Argentina", flag: "🇦🇷", dial: "+54" },
-  { code: "CL", name: "Chile", flag: "🇨🇱", dial: "+56" },
-  { code: "CO", name: "Colombia", flag: "🇨🇴", dial: "+57" },
-  { code: "PE", name: "Peru", flag: "🇵🇪", dial: "+51" },
-  { code: "PL", name: "Poland", flag: "🇵🇱", dial: "+48" },
-  { code: "UA", name: "Ukraine", flag: "🇺🇦", dial: "+380" },
-  { code: "RO", name: "Romania", flag: "🇷🇴", dial: "+40" },
-  { code: "GR", name: "Greece", flag: "🇬🇷", dial: "+30" },
-  { code: "PT", name: "Portugal", flag: "🇵🇹", dial: "+351" },
-  { code: "AT", name: "Austria", flag: "🇦🇹", dial: "+43" },
-  { code: "BE", name: "Belgium", flag: "🇧🇪", dial: "+32" },
+  { code: "IN", name: "India", dial: "+91" },
+  { code: "US", name: "United States", dial: "+1" },
+  { code: "GB", name: "United Kingdom", dial: "+44" },
+  { code: "CA", name: "Canada", dial: "+1" },
+  { code: "AU", name: "Australia", dial: "+61" },
+  { code: "NZ", name: "New Zealand", dial: "+64" },
+  { code: "SG", name: "Singapore", dial: "+65" },
+  { code: "AE", name: "United Arab Emirates", dial: "+971" },
+  { code: "SA", name: "Saudi Arabia", dial: "+966" },
+  { code: "ZA", name: "South Africa", dial: "+27" },
+  { code: "DE", name: "Germany", dial: "+49" },
+  { code: "FR", name: "France", dial: "+33" },
+  { code: "IT", name: "Italy", dial: "+39" },
+  { code: "ES", name: "Spain", dial: "+34" },
+  { code: "JP", name: "Japan", dial: "+81" },
+  { code: "CN", name: "China", dial: "+86" },
+  { code: "BR", name: "Brazil", dial: "+55" },
+  { code: "MX", name: "Mexico", dial: "+52" },
+  { code: "RU", name: "Russia", dial: "+7" },
+  { code: "NL", name: "Netherlands", dial: "+31" },
+  { code: "CH", name: "Switzerland", dial: "+41" },
+  { code: "SE", name: "Sweden", dial: "+46" },
+  { code: "NO", name: "Norway", dial: "+47" },
+  { code: "FI", name: "Finland", dial: "+358" },
+  { code: "DK", name: "Denmark", dial: "+45" },
+  { code: "IE", name: "Ireland", dial: "+353" },
+  { code: "HK", name: "Hong Kong", dial: "+852" },
+  { code: "MY", name: "Malaysia", dial: "+60" },
+  { code: "TH", name: "Thailand", dial: "+66" },
+  { code: "PH", name: "Philippines", dial: "+63" },
+  { code: "ID", name: "Indonesia", dial: "+62" },
+  { code: "VN", name: "Vietnam", dial: "+84" },
+  { code: "KR", name: "South Korea", dial: "+82" },
+  { code: "TR", name: "Turkey", dial: "+90" },
+  { code: "PK", name: "Pakistan", dial: "+92" },
+  { code: "BD", name: "Bangladesh", dial: "+880" },
+  { code: "LK", name: "Sri Lanka", dial: "+94" },
+  { code: "NP", name: "Nepal", dial: "+977" },
+  { code: "EG", name: "Egypt", dial: "+20" },
+  { code: "NG", name: "Nigeria", dial: "+234" },
+  { code: "KE", name: "Kenya", dial: "+254" },
+  { code: "AR", name: "Argentina", dial: "+54" },
+  { code: "CL", name: "Chile", dial: "+56" },
+  { code: "CO", name: "Colombia", dial: "+57" },
+  { code: "PE", name: "Peru", dial: "+51" },
+  { code: "PL", name: "Poland", dial: "+48" },
+  { code: "UA", name: "Ukraine", dial: "+380" },
+  { code: "RO", name: "Romania", dial: "+40" },
+  { code: "GR", name: "Greece", dial: "+30" },
+  { code: "PT", name: "Portugal", dial: "+351" },
+  { code: "AT", name: "Austria", dial: "+43" },
+  { code: "BE", name: "Belgium", dial: "+32" },
 ];
 
 // Helper function to return SVG icon for a field type
@@ -904,30 +904,54 @@ export default function FormBuilder({ config, existingForm = null }) {
     data.append("footerShowReset", footerShowReset ? "true" : "false");
     data.append("footerFullWidth", footerFullWidth ? "true" : "false");
     data.append("rules", JSON.stringify(rules));
+    data.append("isNew", isEditing ? "false" : "true");
     submit(data, { method: "post" });
   };
 
   const saveBarId = "settings-save-bar";
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const handleFieldInput = () => {
-    if (!hasUnsavedChanges) {
-      setHasUnsavedChanges(true);
-      if (typeof window !== "undefined" && window.shopify) {
+  // Snapshot of the last-saved state — used to detect real changes
+  const savedStateRef = useRef(null);
+
+  // Build a serialisable snapshot of every tracked state value
+  const buildSnapshot = () => JSON.stringify({
+    formName, formHeaderTitle, formDescription,
+    footerText, footerPreviousText, footerNextText, footerSubmitText,
+    footerShowReset, footerFullWidth,
+    primaryColor, borderRadius, fontFamily, backgroundColor,
+    titleColor, titleFontSize, descriptionColor, descriptionFontSize,
+    labelColor, labelFontSize, inputBgColor, inputTextColor, inputBorderColor, btnTextColor,
+    afterSubmitAction, successTitle, afterSubmitDiscount, successMessage,
+    redirectUrl, customerTag, rules,
+    fields, pages,
+  });
+
+  // Show/hide save bar based on whether current state differs from saved snapshot
+  const syncSaveBar = (snapshot) => {
+    const isDirty = savedStateRef.current !== null && snapshot !== savedStateRef.current;
+    if (typeof window !== "undefined" && window.shopify) {
+      if (isDirty) {
         window.shopify.saveBar.show(saveBarId);
+      } else {
+        window.shopify.saveBar.hide(saveBarId);
       }
     }
   };
 
+
   // Drag and Drop reordering state & handlers
   const [draggedFieldId, setDraggedFieldId] = useState(null);
   const isDragging = useRef(false);
+  const isResetting = useRef(false); // prevents save bar from re-appearing during discard/save resets
   const dragStartOrderRef = useRef("");
   const fieldsRef = useRef(fields);
 
   useEffect(() => {
     fieldsRef.current = fields;
   }, [fields]);
+
+  // No-op kept for compatibility — save bar is driven by the state snapshot watcher below
+  const handleFieldInput = () => { };
 
   const handleDragStart = (e, fieldId) => {
     isDragging.current = true;
@@ -970,11 +994,7 @@ export default function FormBuilder({ config, existingForm = null }) {
   };
 
   const handleDiscard = () => {
-    setHasUnsavedChanges(false);
-    if (typeof window !== "undefined" && window.shopify) {
-      window.shopify.saveBar.hide(saveBarId);
-    }
-
+    isResetting.current = true;
     // Reset all state variables to original loader/draft values
     setFormName(existingForm?.formName || existingForm?.title || config.formTitle);
     setFormHeaderTitle(existingForm?.headerTitle || existingForm?.title || config.formTitle);
@@ -987,7 +1007,6 @@ export default function FormBuilder({ config, existingForm = null }) {
     setFooterFullWidth(!!existingForm?.footerFullWidth);
     setFields(existingForm?.fields?.length ? existingForm.fields : config.initialFields);
     setPages(existingForm?.pages?.length ? existingForm.pages : [{ id: 1, title: "Page 1" }]);
-
     // Styling states reset
     setPrimaryColor(existingForm?.primaryColor || "#008060");
     setBorderRadius(existingForm?.borderRadius || "8px");
@@ -1003,7 +1022,6 @@ export default function FormBuilder({ config, existingForm = null }) {
     setInputTextColor(existingForm?.inputTextColor || "#202223");
     setInputBorderColor(existingForm?.inputBorderColor || "#bbc3c9");
     setBtnTextColor(existingForm?.btnTextColor || "#ffffff");
-
     // After submit states reset
     setAfterSubmitAction(existingForm?.afterSubmitAction || "successful");
     setSuccessTitle(existingForm?.successTitle || "Thanks for getting in touch!");
@@ -1012,95 +1030,83 @@ export default function FormBuilder({ config, existingForm = null }) {
     setRedirectUrl(existingForm?.redirectUrl || "");
     setCustomerTag(existingForm?.customerTag || "");
     setRules(existingForm?.rules || []);
-
+    // Hide the save bar and re-enable the watcher after React flushes
+    setTimeout(() => {
+      isResetting.current = false;
+      if (typeof window !== "undefined" && window.shopify) {
+        window.shopify.saveBar.hide(saveBarId);
+      }
+    }, 0);
     triggerToast("Changes discarded");
   };
 
-  const handleSave = async () => {
-    triggerToast(config.saveToastMessage);
-    setHasUnsavedChanges(false);
+  const handleSave = () => {
+    isResetting.current = true;
+    // Capture a fresh snapshot NOW (before submit) and store it as saved
+    const snapshot = buildSnapshot();
+    savedStateRef.current = snapshot;
     if (typeof window !== "undefined" && window.shopify) {
       window.shopify.saveBar.hide(saveBarId);
     }
-    handleContinue();
+    triggerToast(config.saveToastMessage);
+    handleContinueRef.current();
+    setTimeout(() => { isResetting.current = false; }, 0);
   };
 
   // Safe ref wrappers to avoid stale closure issues in document event listeners
   const handleContinueRef = useRef(handleContinue);
+  const handleSaveRef = useRef(handleSave);
   const handleDiscardRef = useRef(handleDiscard);
 
   useEffect(() => {
     handleContinueRef.current = handleContinue;
+    handleSaveRef.current = handleSave;
     handleDiscardRef.current = handleDiscard;
   });
 
   // Listen for Shopify Admin Save Bar native events
   useEffect(() => {
-    const onSave = () => {
-      triggerToast(config.saveToastMessage);
-      handleContinueRef.current();
-    };
-    const onDiscard = () => {
-      handleDiscardRef.current();
-    };
-
+    const onSave = () => handleSaveRef.current();
+    const onDiscard = () => handleDiscardRef.current();
     document.addEventListener("shopify:save", onSave);
     document.addEventListener("shopify:discard", onDiscard);
-
     return () => {
       document.removeEventListener("shopify:save", onSave);
       document.removeEventListener("shopify:discard", onDiscard);
     };
   }, []);
 
-  // Monitor all state changes to trigger Shopify save bar
+  // Monitor all state changes — compare against saved snapshot, show/hide save bar accordingly
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) {
+      // On first render, capture the initial saved state snapshot
+      const initial = buildSnapshot();
+      savedStateRef.current = initial;
       isFirstRender.current = false;
       return;
     }
-    // Avoid triggering Save Bar during active dragging operations
-    if (isDragging.current) {
-      return;
-    }
-    handleFieldInput();
+    if (isDragging.current || isResetting.current) return;
+    const snapshot = buildSnapshot();
+    syncSaveBar(snapshot);
   }, [
-    fields,
-    pages,
-    formName,
-    formHeaderTitle,
-    formDescription,
-    footerText,
-    footerPreviousText,
-    footerNextText,
-    footerSubmitText,
-    footerShowReset,
-    footerFullWidth,
-    primaryColor,
-    borderRadius,
-    fontFamily,
-    backgroundColor,
-    titleColor,
-    titleFontSize,
-    descriptionColor,
-    descriptionFontSize,
-    labelColor,
-    labelFontSize,
-    inputBgColor,
-    inputTextColor,
-    inputBorderColor,
-    btnTextColor,
-    afterSubmitAction,
-    successTitle,
-    afterSubmitDiscount,
-    successMessage,
-    redirectUrl,
-    customerTag,
-    rules,
+    fields, pages, formName, formHeaderTitle, formDescription,
+    footerText, footerPreviousText, footerNextText, footerSubmitText,
+    footerShowReset, footerFullWidth,
+    primaryColor, borderRadius, fontFamily, backgroundColor,
+    titleColor, titleFontSize, descriptionColor, descriptionFontSize,
+    labelColor, labelFontSize, inputBgColor, inputTextColor, inputBorderColor, btnTextColor,
+    afterSubmitAction, successTitle, afterSubmitDiscount, successMessage,
+    redirectUrl, customerTag, rules,
   ]);
   return (
     <s-page>
+      {/* Shopify imperative Save Bar */}
+      <ui-save-bar id={saveBarId}>
+        <button variant="primary" onClick={handleSave}></button>
+        <button onClick={handleDiscard}></button>
+      </ui-save-bar>
+
       {/* Top Header Bar using Spruce Stack */}
       <s-stack
         direction="inline"
@@ -1178,14 +1184,24 @@ export default function FormBuilder({ config, existingForm = null }) {
                           {/* Internal Form Settings */}
                           <s-stack
                             gap="base"
-                            style={{
-                              paddingBottom: "16px",
-                              marginBottom: "8px",
-                              borderBottom: "1px solid #e5e7eb",
-                            }}
+
                           >
-                            <s-stack direction="inline" alignItems="center" gap="small" style={{ marginBottom: "8px" }}>
-                              <input
+                            <s-stack direction="inline" alignItems="center" gap="small" >
+                              <s-checkbox
+                                id="enable-b2b-checkbox"
+                                label=" Enable B2B"
+                                checked={formCategory === "b2b"}
+                                onChange={(e) => {
+                                  handleFieldInput();
+                                  const checked = e.target.checked;
+                                  setFormCategory(checked ? "b2b" : "custom");
+                                  if (!checked && activeTab === "settings") {
+                                    setActiveTab("elements");
+                                  }
+                                }}
+
+                              ></s-checkbox>
+                              {/* <input
                                 type="checkbox"
                                 id="enable-b2b-checkbox"
                                 checked={formCategory === "b2b"}
@@ -1196,12 +1212,6 @@ export default function FormBuilder({ config, existingForm = null }) {
                                   if (!checked && activeTab === "settings") {
                                     setActiveTab("elements");
                                   }
-                                }}
-                                style={{
-                                  width: "16px",
-                                  height: "16px",
-                                  accentColor: "#008060",
-                                  cursor: "pointer",
                                 }}
                               />
                               <label
@@ -1214,7 +1224,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                 }}
                               >
                                 Enable B2B
-                              </label>
+                              </label> */}
                             </s-stack>
                             <s-text-field
                               label="Form name"
@@ -1225,10 +1235,23 @@ export default function FormBuilder({ config, existingForm = null }) {
                             />
                           </s-stack>
 
-                          <s-heading level="3">Elements</s-heading>
 
                           {/* Premium Clickable Header card in the Elements list */}
-                          <div
+                          <s-button inlineSize="fill" className="tree-field-item" onClick={() => setSelectedFieldId("form-header")} onMouseEnter={(e) => {
+                            if (selectedFieldId !== "form-header") {
+                              e.currentTarget.style.borderColor = "#bbc3c9";
+                              e.currentTarget.style.background = "#f6f6f7";
+                            }
+                          }}
+                            onMouseLeave={(e) => {
+                              if (selectedFieldId !== "form-header") {
+                                e.currentTarget.style.borderColor = "#e1e3e5";
+                                e.currentTarget.style.background = "#ffffff";
+                              }
+                            }}>
+                            Header
+                          </s-button>
+                          {/* <div
                             onClick={() => setSelectedFieldId("form-header")}
                             style={{
                               display: "flex",
@@ -1266,7 +1289,10 @@ export default function FormBuilder({ config, existingForm = null }) {
                             >
                               Header
                             </span>
-                          </div>
+                          </div> */}
+
+                          <s-heading level="3">Elements</s-heading>
+
 
 
                           {pages.map((page) => {
@@ -1276,12 +1302,14 @@ export default function FormBuilder({ config, existingForm = null }) {
                             return (
                               <s-stack gap="small" key={page.id}>
                                 {/* Page Title Row */}
-                                <div
-                                  className="tree-page-title-row"
+                                <s-stack
+                                  direction="inline"
+                                  gap="small"
+                                  className="cursor-pointer"
                                   onClick={() => togglePageCollapse(page.id)}
-                                  style={{ cursor: "pointer" }}
                                 >
-                                  <svg
+                                  <s-icon type={collapsedPages[page.id] ? "caret-right" : "caret-down"} />
+                                  {/* <svg
                                     width="14"
                                     height="14"
                                     viewBox="0 0 24 24"
@@ -1297,8 +1325,10 @@ export default function FormBuilder({ config, existingForm = null }) {
                                     }}
                                   >
                                     <path d="m6 9 6 6 6-6" />
-                                  </svg>
-                                  <svg
+                                  </svg> */}
+
+                                  <s-icon type="folder" />
+                                  {/* <svg
                                     width="16"
                                     height="16"
                                     viewBox="0 0 24 24"
@@ -1308,26 +1338,22 @@ export default function FormBuilder({ config, existingForm = null }) {
                                     style={{ color: "#6d7175" }}
                                   >
                                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                                  </svg>
+                                  </svg> */}
                                   <s-text
-                                    style={{
-                                      fontSize: "14px",
-                                      fontWeight: "600",
-                                      color: "#202223",
-                                    }}
+
                                   >
                                     {page.title}
                                   </s-text>
                                   {pages.length > 1 && (
-                                    <button
-                                      className="delete-page-btn"
+                                    <s-button
+
                                       title="Delete Page"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         deletePage(page.id);
                                       }}
                                     >
-                                      <svg
+                                      {/* <svg
                                         width="14"
                                         height="14"
                                         viewBox="0 0 24 24"
@@ -1351,10 +1377,11 @@ export default function FormBuilder({ config, existingForm = null }) {
                                           x2="14"
                                           y2="17"
                                         ></line>
-                                      </svg>
-                                    </button>
+                                      </svg> */}
+                                      <s-icon type="delete" />
+                                    </s-button>
                                   )}
-                                </div>
+                                </s-stack>
 
                                 {/* Indented Fields Tree with Left Dotted Line */}
                                 {!collapsedPages[page.id] && (
@@ -1428,21 +1455,11 @@ export default function FormBuilder({ config, existingForm = null }) {
                           </s-box>
 
                           {/* Premium Clickable Footer card in the Elements list */}
-                          <div
+                          <s-button
+                            inlineSize="fill"
+                            className="tree-field-item"
                             onClick={() => setSelectedFieldId("form-footer")}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                              padding: "8px 12px",
-                              background: selectedFieldId === "form-footer" ? "rgba(0, 128, 96, 0.05)" : "#ffffff",
-                              border: selectedFieldId === "form-footer" ? "1px solid #008060" : "1px solid #e1e3e5",
-                              borderRadius: "8px",
-                              cursor: "pointer",
-                              transition: "all 0.2s ease",
-                              marginTop: "16px",
-                              boxShadow: selectedFieldId === "form-footer" ? "0 1px 3px rgba(0, 128, 96, 0.1)" : "none",
-                            }}
+
                             onMouseEnter={(e) => {
                               if (selectedFieldId !== "form-footer") {
                                 e.currentTarget.style.borderColor = "#bbc3c9";
@@ -1456,32 +1473,8 @@ export default function FormBuilder({ config, existingForm = null }) {
                               }
                             }}
                           >
-                            {/* Footer SVG Icon */}
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                              style={{ color: selectedFieldId === "form-footer" ? "#008060" : "#6d7175" }}
-                            >
-                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                              <line x1="3" y1="16" x2="21" y2="16" />
-                              <circle cx="7" cy="19" r="0.75" fill="currentColor" />
-                              <circle cx="12" cy="19" r="0.75" fill="currentColor" />
-                              <circle cx="17" cy="19" r="0.75" fill="currentColor" />
-                            </svg>
-                            <span
-                              style={{
-                                fontSize: "14px",
-                                fontWeight: "600",
-                                color: selectedFieldId === "form-footer" ? "#008060" : "#202223",
-                              }}
-                            >
-                              Footer
-                            </span>
-                          </div>
+                            Footer
+                          </s-button>
 
                           {/* {bannerVisible && (
                             <s-box padding="base" style={{ background: "rgba(0, 128, 96, 0.04)", border: "1px solid rgba(0, 128, 96, 0.15)", borderRadius: "6px", position: "relative", marginTop: "auto" }}>
@@ -1503,12 +1496,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                           <s-stack
                             direction="inline"
                             alignItems="center"
-                            gap="base"
-                            style={{
-                              borderBottom: "1px solid #e1e3e5",
-                              paddingBottom: "12px",
-                            }}
-                          >
+                            gap="base" >
                             <s-button
                               variant="secondary"
                               onClick={() => setSelectedFieldId(null)}
@@ -1529,36 +1517,16 @@ export default function FormBuilder({ config, existingForm = null }) {
                               details="Header displayed at the top of the form"
                             />
 
-                            <s-stack gap="small">
-                              <s-text
-                                style={{
-                                  fontSize: "13px",
-                                  fontWeight: "500",
-                                  color: "#202223",
-                                }}
-                              >
-                                Form description
-                              </s-text>
-                              <textarea
-                                value={formDescription}
-                                onChange={(e) => {
-                                  handleFieldInput();
-                                  setFormDescription(e.target.value);
-                                }}
-                                rows={5}
-                                placeholder="Short text below the form title"
-                                style={{
-                                  width: "100%",
-                                  padding: "10px 12px",
-                                  border: "1px solid #c9cccf",
-                                  borderRadius: "8px",
-                                  fontSize: "14px",
-                                  fontFamily: "inherit",
-                                  resize: "vertical",
-                                  boxSizing: "border-box",
-                                }}
-                              />
-                            </s-stack>
+                            <s-textarea
+                              label="Form description"
+                              value={formDescription}
+                              onChange={(e) => {
+                                handleFieldInput();
+                                setFormDescription(e.currentTarget.value);
+                              }}
+                              rows={5}
+                              placeholder="Short text below the form title"
+                            />
                           </s-stack>
                         </s-stack>
                       </s-section>
@@ -1570,12 +1538,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                           <s-stack
                             direction="inline"
                             alignItems="center"
-                            gap="base"
-                            style={{
-                              borderBottom: "1px solid #e1e3e5",
-                              paddingBottom: "12px",
-                            }}
-                          >
+                            gap="base">
                             <s-button
                               variant="secondary"
                               onClick={() => setSelectedFieldId(null)}
@@ -1587,131 +1550,72 @@ export default function FormBuilder({ config, existingForm = null }) {
 
                           <s-stack gap="base">
                             {/* Rich text / Description block */}
-                            <s-stack gap="small">
-                              <s-text
-                                style={{
-                                  fontSize: "13px",
-                                  fontWeight: "500",
-                                  color: "#202223",
-                                }}
-                              >
-                                Text
-                              </s-text>
-                              <textarea
-                                value={footerText}
-                                onChange={(e) => {
-                                  handleFieldInput();
-                                  setFooterText(e.target.value);
-                                }}
-                                rows={4}
-                                placeholder="Write any footer text or instructions here"
-                                style={{
-                                  width: "100%",
-                                  padding: "10px 12px",
-                                  border: "1px solid #c9cccf",
-                                  borderRadius: "8px",
-                                  fontSize: "14px",
-                                  fontFamily: "inherit",
-                                  resize: "vertical",
-                                  boxSizing: "border-box",
-                                }}
-                              />
-                            </s-stack>
+                            <s-textarea
+                              label="Text"
+                              value={footerText}
+                              onChange={(e) => {
+                                handleFieldInput();
+                                setFooterText(e.currentTarget.value);
+                              }}
+                              rows={4}
+                              placeholder="Write any footer text or instructions here"
+                            />
 
                             {/* Previous button text input */}
-                            <div style={{ position: "relative" }}>
-                              <s-text-field
-                                label="Previous"
-                                value={footerPreviousText}
-                                onInput={handleFieldInput}
-                                onChange={(e) =>
-                                  setFooterPreviousText(e.currentTarget.value)
-                                }
-                              />
-                            </div>
+                            <s-text-field
+                              label="Previous"
+                              value={footerPreviousText}
+                              onInput={handleFieldInput}
+                              onChange={(e) =>
+                                setFooterPreviousText(e.currentTarget.value)
+                              }
+                            />
 
                             {/* Next button text input */}
-                            <div style={{ position: "relative" }}>
-                              <s-text-field
-                                label="Next"
-                                value={footerNextText}
-                                onInput={handleFieldInput}
-                                onChange={(e) =>
-                                  setFooterNextText(e.currentTarget.value)
-                                }
-                              />
-                            </div>
+                            <s-text-field
+                              label="Next"
+                              value={footerNextText}
+                              onInput={handleFieldInput}
+                              onChange={(e) =>
+                                setFooterNextText(e.currentTarget.value)
+                              }
+                            />
 
                             {/* Submit text input */}
-                            <div style={{ position: "relative" }}>
-                              <s-text-field
-                                label="Submit text"
-                                value={footerSubmitText}
-                                onInput={handleFieldInput}
-                                onChange={(e) =>
-                                  setFooterSubmitText(e.currentTarget.value)
-                                }
-                              />
-                            </div>
+                            <s-text-field
+                              label="Submit text"
+                              value={footerSubmitText}
+                              onInput={handleFieldInput}
+                              onChange={(e) =>
+                                setFooterSubmitText(e.currentTarget.value)
+                              }
+                            />
 
                             {/* Reset Button Toggle */}
                             <s-stack direction="inline" alignItems="center" gap="small" style={{ marginTop: "8px" }}>
-                              <input
-                                type="checkbox"
-                                id="footer-reset-checkbox"
+
+                              <s-checkbox
+                                label="Reset button" id="footer-reset-checkbox"
                                 checked={footerShowReset}
                                 onChange={(e) => {
                                   handleFieldInput();
                                   setFooterShowReset(e.target.checked);
-                                }}
-                                style={{
-                                  width: "16px",
-                                  height: "16px",
-                                  accentColor: "#008060",
-                                  cursor: "pointer",
-                                }}
-                              />
-                              <label
-                                htmlFor="footer-reset-checkbox"
-                                style={{
-                                  fontSize: "14px",
-                                  fontWeight: "500",
-                                  color: "#202223",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Reset button
-                              </label>
+                                }} ></s-checkbox>
+
                             </s-stack>
 
                             {/* Full width toggle */}
                             <s-stack direction="inline" alignItems="center" gap="small">
-                              <input
-                                type="checkbox"
+                              <s-checkbox
+                                label="Full width footer button"
                                 id="footer-full-width-checkbox"
                                 checked={footerFullWidth}
                                 onChange={(e) => {
                                   handleFieldInput();
                                   setFooterFullWidth(e.target.checked);
                                 }}
-                                style={{
-                                  width: "16px",
-                                  height: "16px",
-                                  accentColor: "#008060",
-                                  cursor: "pointer",
-                                }}
-                              />
-                              <label
-                                htmlFor="footer-full-width-checkbox"
-                                style={{
-                                  fontSize: "14px",
-                                  fontWeight: "500",
-                                  color: "#202223",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Full width footer button
-                              </label>
+                              ></s-checkbox>
+
                             </s-stack>
                           </s-stack>
                         </s-stack>
@@ -1723,12 +1627,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                           <s-stack
                             direction="inline"
                             alignItems="center"
-                            gap="base"
-                            style={{
-                              borderBottom: "1px solid #e1e3e5",
-                              paddingBottom: "12px",
-                            }}
-                          >
+                            gap="base">
                             <s-button
                               variant="secondary"
                               onClick={() => setSelectedFieldId(null)}
@@ -1804,43 +1703,24 @@ export default function FormBuilder({ config, existingForm = null }) {
                             {/* Default Country for Phone/Tel fields */}
                             {(selectedField.type === "phone" ||
                               selectedField.type === "tel") && (
-                                <s-stack gap="small" style={{ marginTop: "8px" }}>
-                                  <s-text
-                                    style={{
-                                      fontSize: "13px",
-                                      fontWeight: "500",
-                                      color: "#202223",
-                                    }}
-                                  >
-                                    Default Country
-                                  </s-text>
-                                  <select
-                                    value={selectedField.defaultCountry || "IN"}
+                                <s-stack gap="small">
+
+                                  <s-select
+                                    label="Default Country"
                                     onChange={(e) => {
                                       handleFieldInput();
                                       updateSelectedField(
                                         "defaultCountry",
                                         e.target.value,
                                       );
-                                    }}
-                                    style={{
-                                      width: "100%",
-                                      height: "38px",
-                                      border: "1px solid #c9cccf",
-                                      borderRadius: "8px",
-                                      padding: "0 12px",
-                                      fontSize: "14px",
-                                      background: "#ffffff",
-                                      cursor: "pointer",
-                                      boxSizing: "border-box",
-                                    }}
-                                  >
+                                    }}>
                                     {countriesList.map((c) => (
-                                      <option key={c.code} value={c.code}>
+                                      <s-option value={selectedField.defaultCountry || "IN"}
+                                        key={c.code} value={c.code}>
                                         {c.name} ({c.dial})
-                                      </option>
+                                      </s-option>
                                     ))}
-                                  </select>
+                                  </s-select>
                                 </s-stack>
                               )}
 
@@ -1868,7 +1748,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                               )}
 
                             {/* Checkboxes stacked */}
-                            <s-stack gap="small" style={{ marginTop: "8px" }}>
+                            <s-stack gap="small">
                               {/* Limit characters */}
                               {[
                                 "text",
@@ -1883,8 +1763,8 @@ export default function FormBuilder({ config, existingForm = null }) {
                                       gap="small"
                                       alignItems="center"
                                     >
-                                      <input
-                                        type="checkbox"
+                                      <s-checkbox
+                                        label="Limit characters"
                                         id="limit-characters-checkbox"
                                         checked={
                                           selectedField.limitCharacters || false
@@ -1895,78 +1775,36 @@ export default function FormBuilder({ config, existingForm = null }) {
                                             e.target.checked,
                                           )
                                         }
-                                        style={{
-                                          width: "16px",
-                                          height: "16px",
-                                          accentColor: "#008060",
-                                          cursor: "pointer",
-                                        }}
-                                      />
-                                      <label
-                                        htmlFor="limit-characters-checkbox"
-                                        style={{
-                                          fontSize: "13px",
-                                          color: "#202223",
-                                          cursor: "pointer",
-                                        }}
-                                      >
-                                        Limit characters
-                                      </label>
+                                      ></s-checkbox>
+
                                     </s-stack>
 
                                     {selectedField.limitCharacters && (
-                                      <s-stack gap="small" style={{ marginTop: "4px" }}>
+                                      <s-stack gap="small">
                                         <s-stack direction="inline" gap="base">
-                                          <div style={{ flex: 1 }}>
-                                            <s-text style={{ fontSize: "13px", color: "#202223", display: "block", marginBottom: "4px", fontWeight: "500" }}>
-                                              Min characters
-                                            </s-text>
-                                            <input
-                                              type="number"
-                                              value={selectedField.minCharacters ?? ""}
-                                              onChange={(e) =>
-                                                updateSelectedField(
-                                                  "minCharacters",
-                                                  e.target.value === "" ? "" : parseInt(e.target.value, 10)
-                                                )
-                                              }
-                                              style={{
-                                                width: "100%",
-                                                height: "38px",
-                                                border: "1px solid #c9cccf",
-                                                borderRadius: "8px",
-                                                padding: "0 12px",
-                                                fontSize: "14px",
-                                                boxSizing: "border-box"
-                                              }}
-                                            />
-                                          </div>
-                                          <div style={{ flex: 1 }}>
-                                            <s-text style={{ fontSize: "13px", color: "#202223", display: "block", marginBottom: "4px", fontWeight: "500" }}>
-                                              Max characters
-                                            </s-text>
-                                            <input
-                                              type="number"
-                                              value={selectedField.maxCharacters ?? ""}
-                                              onChange={(e) =>
-                                                updateSelectedField(
-                                                  "maxCharacters",
-                                                  e.target.value === "" ? "" : parseInt(e.target.value, 10)
-                                                )
-                                              }
-                                              style={{
-                                                width: "100%",
-                                                height: "38px",
-                                                border: "1px solid #c9cccf",
-                                                borderRadius: "8px",
-                                                padding: "0 12px",
-                                                fontSize: "14px",
-                                                boxSizing: "border-box"
-                                              }}
-                                            />
-                                          </div>
+                                          <s-number-field
+                                            label="Min characters"
+                                            value={selectedField.minCharacters ?? ""}
+                                            onChange={(e) =>
+                                              updateSelectedField(
+                                                "minCharacters",
+                                                e.target.value === "" ? "" : parseInt(e.target.value, 10)
+                                              )
+                                            }></s-number-field>
+
+                                          <s-number-field
+                                            label="Max characters"
+                                            value={selectedField.maxCharacters ?? ""}
+                                            onChange={(e) =>
+                                              updateSelectedField(
+                                                "maxCharacters",
+                                                e.target.value === "" ? "" : parseInt(e.target.value, 10)
+                                              )
+                                            }></s-number-field>
+
+
                                         </s-stack>
-                                        <s-text style={{ fontSize: "12px", color: "#6d7175", lineHeight: "1.4", marginTop: "2px" }}>
+                                        <s-text >
                                           Note: If you don't want to set a maximum number of characters, please leave this field blank instead of setting it to 0.
                                         </s-text>
                                       </s-stack>
@@ -1978,39 +1816,17 @@ export default function FormBuilder({ config, existingForm = null }) {
                               {selectedField.type !== "divider" &&
                                 selectedField.type !== "heading" &&
                                 selectedField.type !== "paragraph" && (
-                                  <s-stack
-                                    direction="inline"
-                                    gap="small"
-                                    alignItems="center"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      id="hide-label-checkbox"
-                                      checked={selectedField.hideLabel || false}
-                                      onChange={(e) =>
-                                        updateSelectedField(
-                                          "hideLabel",
-                                          e.target.checked,
-                                        )
-                                      }
-                                      style={{
-                                        width: "16px",
-                                        height: "16px",
-                                        accentColor: "#008060",
-                                        cursor: "pointer",
-                                      }}
-                                    />
-                                    <label
-                                      htmlFor="hide-label-checkbox"
-                                      style={{
-                                        fontSize: "13px",
-                                        color: "#202223",
-                                        cursor: "pointer",
-                                      }}
-                                    >
-                                      Hide label
-                                    </label>
-                                  </s-stack>
+                                  <s-checkbox
+                                    label="Hide label"
+                                    id="hide-label-checkbox"
+                                    checked={selectedField.hideLabel || false}
+                                    onChange={(e) =>
+                                      updateSelectedField(
+                                        "hideLabel",
+                                        e.target.checked,
+                                      )
+                                    }
+                                  ></s-checkbox>
                                 )}
 
                               {/* Required */}
@@ -2018,84 +1834,38 @@ export default function FormBuilder({ config, existingForm = null }) {
                                 selectedField.type !== "paragraph" &&
                                 selectedField.type !== "divider" &&
                                 selectedField.type !== "button" && (
-                                  <s-stack
-                                    direction="inline"
-                                    gap="small"
-                                    alignItems="center"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      id="required-checkbox"
-                                      checked={selectedField.required || false}
-                                      onChange={(e) =>
-                                        updateSelectedField(
-                                          "required",
-                                          e.target.checked,
-                                        )
-                                      }
-                                      style={{
-                                        width: "16px",
-                                        height: "16px",
-                                        accentColor: "#008060",
-                                        cursor: "pointer",
-                                      }}
-                                    />
-                                    <label
-                                      htmlFor="required-checkbox"
-                                      style={{
-                                        fontSize: "13px",
-                                        color: "#202223",
-                                        cursor: "pointer",
-                                      }}
-                                    >
-                                      Required
-                                    </label>
-                                  </s-stack>
+                                  <s-checkbox
+                                    label="Required"
+                                    id="required-checkbox"
+                                    checked={selectedField.required || false}
+                                    onChange={(e) =>
+                                      updateSelectedField(
+                                        "required",
+                                        e.target.checked,
+                                      )
+                                    }
+                                  ></s-checkbox>
                                 )}
                               {/* Rating special fields */}
                               {(selectedField.type === "rating" ||
                                 selectedField.type === "feedback") && (
                                   <s-stack gap="small" style={{ marginTop: "8px" }}>
-                                    <s-stack
-                                      direction="inline"
-                                      gap="small"
-                                      alignItems="center"
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        id="choose-another-icon-checkbox"
-                                        checked={selectedField.chooseAnotherIcon || false}
-                                        onChange={(e) =>
-                                          updateSelectedField(
-                                            "chooseAnotherIcon",
-                                            e.target.checked,
-                                          )
-                                        }
-                                        style={{
-                                          width: "16px",
-                                          height: "16px",
-                                          accentColor: "#008060",
-                                          cursor: "pointer",
-                                        }}
-                                      />
-                                      <label
-                                        htmlFor="choose-another-icon-checkbox"
-                                        style={{
-                                          fontSize: "13px",
-                                          color: "#202223",
-                                          cursor: "pointer",
-                                        }}
-                                      >
-                                        Choose another icon
-                                      </label>
-                                    </s-stack>
+                                    <s-checkbox
+                                      label="Choose another icon"
+                                      id="choose-another-icon-checkbox"
+                                      checked={selectedField.chooseAnotherIcon || false}
+                                      onChange={(e) =>
+                                        updateSelectedField(
+                                          "chooseAnotherIcon",
+                                          e.target.checked,
+                                        )
+                                      }
+                                    ></s-checkbox>
 
                                     {selectedField.chooseAnotherIcon && (
                                       <s-stack gap="small" style={{ paddingLeft: "24px", marginTop: "4px" }}>
-                                        <s-text style={{ fontSize: "13px", fontWeight: "500", color: "#202223" }}>
-                                          Select Icon
-                                        </s-text>
-                                        <select
+                                        <s-select
+                                          label="Select Icon"
                                           value={selectedField.ratingIcon || "star"}
                                           onChange={(e) =>
                                             updateSelectedField(
@@ -2103,59 +1873,27 @@ export default function FormBuilder({ config, existingForm = null }) {
                                               e.target.value,
                                             )
                                           }
-                                          style={{
-                                            width: "100%",
-                                            height: "38px",
-                                            border: "1px solid #c9cccf",
-                                            borderRadius: "8px",
-                                            padding: "0 12px",
-                                            fontSize: "14px",
-                                            background: "#ffffff",
-                                            cursor: "pointer"
-                                          }}
                                         >
-                                          <option value="star">Star (⭐)</option>
-                                          <option value="heart">Heart (❤️)</option>
-                                          <option value="smile">Smile (😊)</option>
-                                          <option value="thumb">Thumb up (👍)</option>
-                                        </select>
+                                          <s-option value="star">Star (⭐)</s-option>
+                                          <s-option value="heart">Heart (❤️)</s-option>
+                                          <s-option value="smile">Smile (😊)</s-option>
+                                          <s-option value="thumb">Thumb up (👍)</s-option>
+                                        </s-select>
                                       </s-stack>
                                     )}
 
-                                    <s-stack
-                                      direction="inline"
-                                      gap="small"
-                                      alignItems="center"
+                                    <s-checkbox
+                                      label="Show number under icon"
+                                      id="show-number-under-icon-checkbox"
+                                      checked={selectedField.showNumberUnderIcon || false}
+                                      onChange={(e) =>
+                                        updateSelectedField(
+                                          "showNumberUnderIcon",
+                                          e.target.checked,
+                                        )
+                                      }
                                       style={{ marginTop: "4px" }}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        id="show-number-under-icon-checkbox"
-                                        checked={selectedField.showNumberUnderIcon || false}
-                                        onChange={(e) =>
-                                          updateSelectedField(
-                                            "showNumberUnderIcon",
-                                            e.target.checked,
-                                          )
-                                        }
-                                        style={{
-                                          width: "16px",
-                                          height: "16px",
-                                          accentColor: "#008060",
-                                          cursor: "pointer",
-                                        }}
-                                      />
-                                      <label
-                                        htmlFor="show-number-under-icon-checkbox"
-                                        style={{
-                                          fontSize: "13px",
-                                          color: "#202223",
-                                          cursor: "pointer",
-                                        }}
-                                      >
-                                        Show number under icon
-                                      </label>
-                                    </s-stack>
+                                    ></s-checkbox>
                                   </s-stack>
                                 )}
 
@@ -2164,81 +1902,37 @@ export default function FormBuilder({ config, existingForm = null }) {
                               {["text", "number"].includes(
                                 selectedField.type,
                               ) && (
-                                  <s-stack
-                                    direction="inline"
-                                    gap="small"
-                                    alignItems="center"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      id="numbers-only-checkbox"
-                                      checked={selectedField.numbersOnly || false}
-                                      onChange={(e) =>
-                                        updateSelectedField(
-                                          "numbersOnly",
-                                          e.target.checked,
-                                        )
-                                      }
-                                      style={{
-                                        width: "16px",
-                                        height: "16px",
-                                        accentColor: "#008060",
-                                        cursor: "pointer",
-                                      }}
-                                    />
-                                    <label
-                                      htmlFor="numbers-only-checkbox"
-                                      style={{
-                                        fontSize: "13px",
-                                        color: "#202223",
-                                        cursor: "pointer",
-                                      }}
-                                    >
-                                      Enter numbers only
-                                    </label>
-                                  </s-stack>
+                                  <s-checkbox
+                                    label="Enter numbers only"
+                                    id="numbers-only-checkbox"
+                                    checked={selectedField.numbersOnly || false}
+                                    onChange={(e) =>
+                                      updateSelectedField(
+                                        "numbersOnly",
+                                        e.target.checked,
+                                      )
+                                    }
+                                  ></s-checkbox>
                                 )}
 
                               {/* Show required note if hide label */}
                               {selectedField.type !== "divider" &&
                                 selectedField.type !== "heading" &&
                                 selectedField.type !== "paragraph" && (
-                                  <s-stack
-                                    direction="inline"
-                                    gap="small"
-                                    alignItems="center"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      id="show-required-note-checkbox"
-                                      checked={
-                                        selectedField.showRequiredNoteIfHideLabel ||
-                                        false
-                                      }
-                                      onChange={(e) =>
-                                        updateSelectedField(
-                                          "showRequiredNoteIfHideLabel",
-                                          e.target.checked,
-                                        )
-                                      }
-                                      style={{
-                                        width: "16px",
-                                        height: "16px",
-                                        accentColor: "#008060",
-                                        cursor: "pointer",
-                                      }}
-                                    />
-                                    <label
-                                      htmlFor="show-required-note-checkbox"
-                                      style={{
-                                        fontSize: "13px",
-                                        color: "#202223",
-                                        cursor: "pointer",
-                                      }}
-                                    >
-                                      Show required note if hide label?
-                                    </label>
-                                  </s-stack>
+                                  <s-checkbox
+                                    label="Show required note if hide label?"
+                                    id="show-required-note-checkbox"
+                                    checked={
+                                      selectedField.showRequiredNoteIfHideLabel ||
+                                      false
+                                    }
+                                    onChange={(e) =>
+                                      updateSelectedField(
+                                        "showRequiredNoteIfHideLabel",
+                                        e.target.checked,
+                                      )
+                                    }
+                                  ></s-checkbox>
                                 )}
                             </s-stack>
 
@@ -2360,17 +2054,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                         <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
                           Form Background Color
                         </s-text>
-                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
-                          <input
-                            type="color"
-                            value={backgroundColor}
-                            onChange={(e) => {
-                              handleFieldInput();
-                              setBackgroundColor(e.target.value);
-                            }}
-                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none", backgroundColor: "transparent" }}
-                          />
-                        </div>
+                        <s-color-picker
+                          value={backgroundColor}
+                          onChange={(e) => {
+                            handleFieldInput();
+                            setBackgroundColor(e.target.value);
+                          }}
+                        ></s-color-picker>
                         <s-text-field
                           value={backgroundColor}
                           onInput={handleFieldInput}
@@ -2388,17 +2078,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                         <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
                           Title Color
                         </s-text>
-                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
-                          <input
-                            type="color"
-                            value={titleColor}
-                            onChange={(e) => {
-                              handleFieldInput();
-                              setTitleColor(e.target.value);
-                            }}
-                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
-                          />
-                        </div>
+                        <s-color-picker
+                          value={titleColor}
+                          onChange={(e) => {
+                            handleFieldInput();
+                            setTitleColor(e.target.value);
+                          }}
+                        ></s-color-picker>
                         <s-text-field
                           value={titleColor}
                           onInput={handleFieldInput}
@@ -2428,17 +2114,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                         <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
                           Description Color
                         </s-text>
-                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
-                          <input
-                            type="color"
-                            value={descriptionColor}
-                            onChange={(e) => {
-                              handleFieldInput();
-                              setDescriptionColor(e.target.value);
-                            }}
-                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
-                          />
-                        </div>
+                        <s-color-picker
+                          value={descriptionColor}
+                          onChange={(e) => {
+                            handleFieldInput();
+                            setDescriptionColor(e.target.value);
+                          }}
+                        ></s-color-picker>
                         <s-text-field
                           value={descriptionColor}
                           onInput={handleFieldInput}
@@ -2472,17 +2154,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                         <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
                           Field Label Color
                         </s-text>
-                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
-                          <input
-                            type="color"
-                            value={labelColor}
-                            onChange={(e) => {
-                              handleFieldInput();
-                              setLabelColor(e.target.value);
-                            }}
-                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
-                          />
-                        </div>
+                        <s-color-picker
+                          value={labelColor}
+                          onChange={(e) => {
+                            handleFieldInput();
+                            setLabelColor(e.target.value);
+                          }}
+                        ></s-color-picker>
                         <s-text-field
                           value={labelColor}
                           onInput={handleFieldInput}
@@ -2511,17 +2189,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                         <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
                           Input Background Color
                         </s-text>
-                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
-                          <input
-                            type="color"
-                            value={inputBgColor}
-                            onChange={(e) => {
-                              handleFieldInput();
-                              setInputBgColor(e.target.value);
-                            }}
-                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
-                          />
-                        </div>
+                        <s-color-picker
+                          value={inputBgColor}
+                          onChange={(e) => {
+                            handleFieldInput();
+                            setInputBgColor(e.target.value);
+                          }}
+                        ></s-color-picker>
                         <s-text-field
                           value={inputBgColor}
                           onInput={handleFieldInput}
@@ -2534,17 +2208,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                         <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
                           Input Text Color
                         </s-text>
-                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
-                          <input
-                            type="color"
-                            value={inputTextColor}
-                            onChange={(e) => {
-                              handleFieldInput();
-                              setInputTextColor(e.target.value);
-                            }}
-                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
-                          />
-                        </div>
+                        <s-color-picker
+                          value={inputTextColor}
+                          onChange={(e) => {
+                            handleFieldInput();
+                            setInputTextColor(e.target.value);
+                          }}
+                        ></s-color-picker>
                         <s-text-field
                           value={inputTextColor}
                           onInput={handleFieldInput}
@@ -2557,17 +2227,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                         <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
                           Input Border Color
                         </s-text>
-                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
-                          <input
-                            type="color"
-                            value={inputBorderColor}
-                            onChange={(e) => {
-                              handleFieldInput();
-                              setInputBorderColor(e.target.value);
-                            }}
-                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
-                          />
-                        </div>
+                        <s-color-picker
+                          value={inputBorderColor}
+                          onChange={(e) => {
+                            handleFieldInput();
+                            setInputBorderColor(e.target.value);
+                          }}
+                        ></s-color-picker>
                         <s-text-field
                           value={inputBorderColor}
                           onInput={handleFieldInput}
@@ -2585,17 +2251,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                         <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
                           Button Background Color (Primary Color)
                         </s-text>
-                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
-                          <input
-                            type="color"
-                            value={primaryColor}
-                            onChange={(e) => {
-                              handleFieldInput();
-                              setPrimaryColor(e.target.value);
-                            }}
-                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
-                          />
-                        </div>
+                        <s-color-picker
+                          value={primaryColor}
+                          onChange={(e) => {
+                            handleFieldInput();
+                            setPrimaryColor(e.target.value);
+                          }}
+                        ></s-color-picker>
                         <s-text-field
                           value={primaryColor}
                           onInput={handleFieldInput}
@@ -2608,17 +2270,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                         <s-text style={{ fontSize: "14px", fontWeight: "500", color: "#202223" }}>
                           Button Text Color
                         </s-text>
-                        <div style={{ display: "inline-block", padding: "3px", border: "1px solid #bbc3c9", borderRadius: "4px", background: "#ffffff", width: "fit-content", lineHeight: 0 }}>
-                          <input
-                            type="color"
-                            value={btnTextColor}
-                            onChange={(e) => {
-                              handleFieldInput();
-                              setBtnTextColor(e.target.value);
-                            }}
-                            style={{ width: "54px", height: "32px", border: "1px solid #e1e3e5", padding: "0", cursor: "pointer", outline: "none" }}
-                          />
-                        </div>
+                        <s-color-picker
+                          value={btnTextColor}
+                          onChange={(e) => {
+                            handleFieldInput();
+                            setBtnTextColor(e.target.value);
+                          }}
+                        ></s-color-picker>
                         <s-text-field
                           value={btnTextColor}
                           onInput={handleFieldInput}
@@ -3140,35 +2798,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                       ></s-text-field>
                     )}
 
-                    <s-stack
-                      direction="inline"
-                      gap="small"
-                      alignItems="center"
+                    <s-checkbox
+                      label="Sync details to customer metafields"
+                      id="sync-metafield"
+                      checked={syncMetafields}
+                      onChange={(e) => setSyncMetafields(e.target.checked)}
                       style={{ marginTop: "8px" }}
-                    >
-                      <input
-                        type="checkbox"
-                        id="sync-metafield"
-                        checked={syncMetafields}
-                        onChange={(e) => setSyncMetafields(e.target.checked)}
-                        style={{
-                          width: "16px",
-                          height: "16px",
-                          accentColor: "#008060",
-                          cursor: "pointer",
-                        }}
-                      />
-                      <label
-                        htmlFor="sync-metafield"
-                        style={{
-                          fontSize: "13px",
-                          color: "#202223",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Sync details to customer metafields
-                      </label>
-                    </s-stack>
+                    ></s-checkbox>
                   </s-stack>
                 )}
 
@@ -3436,28 +3072,10 @@ export default function FormBuilder({ config, existingForm = null }) {
                         </s-stack>
                       )}
 
-                      <s-stack direction="inline" gap="small" alignItems="center">
-                        <input
-                          type="checkbox"
-                          id="require-account-field"
-                          style={{
-                            width: "16px",
-                            height: "16px",
-                            accentColor: "#008060",
-                            cursor: "pointer",
-                          }}
-                        />
-                        <label
-                          htmlFor="require-account-field"
-                          style={{
-                            fontSize: "13px",
-                            color: "#202223",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Require customer login before submission
-                        </label>
-                      </s-stack>
+                      <s-checkbox
+                        label="Require customer login before submission"
+                        id="require-account-field"
+                      ></s-checkbox>
                     </s-stack>
                   </s-section>
                 )}
@@ -4951,6 +4569,10 @@ export default function FormBuilder({ config, existingForm = null }) {
           flex-direction: column;
           gap: 12px;
           margin-top: 4px;
+        }
+
+        .cursor-pointer{
+        cursor: pointer;
         }
 
         .tree-page-title-row {

@@ -29,6 +29,7 @@ export default function App() {
         <s-link href="/app/forms">Forms</s-link>
         <s-link href="/app/submissions">Submissions</s-link>
         <s-link href="/app/customers">Customers</s-link>
+        <s-link href="/app/pricing">Pricing</s-link>
       </s-app-nav>
       <Outlet />
     </AppProvider>
