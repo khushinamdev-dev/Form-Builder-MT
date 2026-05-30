@@ -92,21 +92,21 @@ const Customers = () => {
       </s-stack>
 
       {errors.length > 0 && (
-        <s-box padding="base" style={{ marginBottom: "20px", background: "#fffbeb", border: "1px dashed #f59e0b", borderRadius: "8px" }}>
+        <s-box padding="base" className="error-alert-box">
           {errors.map((err, i) => (
-            <s-text key={i} tone="warning" style={{ display: "block", fontSize: "13px", fontWeight: "500" }}>⚠ {err}</s-text>
+            <s-text key={i} tone="warning" className="error-alert-text">⚠ {err}</s-text>
           ))}
         </s-box>
       )}
 
-      <div style={{ marginBottom: "16px" }}>
+      <s-box className="margin-bottom-16">
         <s-text tone="subdued">
           Showing {b2bCustomers.length} customer{b2bCustomers.length === 1 ? "" : "s"} approved and created via B2B onboarding.
         </s-text>
-      </div>
+      </s-box>
 
       {b2bCustomers.length === 0 ? (
-        <s-box padding="base" textAlign="center" style={{ background: "#ffffff", border: "1px solid #e1e3e5", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+        <s-box padding="base" textAlign="center" className="empty-customers-card">
           <s-stack gap="base" padding="base">
             <s-heading level="3">No approved B2B customers yet</s-heading>
             <s-paragraph>
@@ -152,7 +152,7 @@ const Customers = () => {
                         </s-text>
                       </s-table-cell>
                       <s-table-cell>
-                        <s-text tone="subdued" style={{ fontFamily: "monospace", fontSize: "12px" }}>
+                        <s-text tone="subdued" className="submission-id-text">
                           {cust.id.split("/").pop()}
                         </s-text>
                       </s-table-cell>

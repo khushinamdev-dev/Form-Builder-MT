@@ -155,7 +155,7 @@ const Forms = () => {
             direction="inline"
             justifyContent="space-between"
           >
-            <div style={{ display: "flex", gap: "8px" }}>
+            <s-stack direction="inline" gap="small">
               <s-button
                 variant={selectedFilter === "All" ? "secondary" : "tertiary"}
                 onClick={() => setSelectedFilter("All")}
@@ -174,7 +174,7 @@ const Forms = () => {
               >
                 Custom
               </s-button>
-            </div>
+            </s-stack>
 
             <s-stack>
               <s-text>Total : {filteredForms.length}</s-text>
@@ -220,19 +220,17 @@ const Forms = () => {
                       </s-table-cell>
 
                       <s-table-cell>
-                        <div
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            flexWrap: "nowrap",
-                            verticalAlign: "middle",
-                          }}
+                        <s-stack
+                          direction="inline"
+                          gap="small"
+                          alignItems="center"
+                          className="form-id-cell-container"
                         >
                           <s-text>{form.formId || "—"}</s-text>
                           {form.formId && (
-                            <button
+                            <s-button
                               type="button"
+                              variant="tertiary"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 navigator.clipboard.writeText(form.formId);
@@ -240,28 +238,7 @@ const Forms = () => {
                                   window.shopify.toast.show("Form ID copied!");
                                 }
                               }}
-                              style={{
-                                background: "none",
-                                border: "none",
-                                padding: "4px",
-                                cursor: "pointer",
-                                color: "#6d7175",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                borderRadius: "4px",
-                                transition: "all 0.2s ease",
-                                margin: "0",
-                                outline: "none",
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#eef0f1";
-                                e.currentTarget.style.color = "#008060";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "transparent";
-                                e.currentTarget.style.color = "#6d7175";
-                              }}
+                              className="copy-id-btn"
                               title="Copy Form ID"
                             >
                               <svg
@@ -273,14 +250,14 @@ const Forms = () => {
                                 strokeWidth="2.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                style={{ display: "block" }}
+                                className="display-block"
                               >
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                               </svg>
-                            </button>
+                            </s-button>
                           )}
-                        </div>
+                        </s-stack>
                       </s-table-cell>
 
                       <s-table-cell>
@@ -312,7 +289,7 @@ const Forms = () => {
                               strokeWidth="2.0"
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              style={{ verticalAlign: "middle", color: "#6b7280" }}
+                              className="view-icon"
                             >
                               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                               <circle cx="12" cy="12" r="3"></circle>

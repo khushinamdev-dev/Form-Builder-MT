@@ -49,6 +49,10 @@ export async function saveFormAction({ request }) {
     try {
         parsedRules = JSON.parse(fd.get("rules") || "[]");
     } catch (_) {}
+    let parsedEmailTemplates = null;
+    try {
+        parsedEmailTemplates = JSON.parse(fd.get("emailTemplates") || "null");
+    } catch (_) {}
 
     const bioContent = JSON.stringify({
         description: formDescription,
@@ -83,6 +87,7 @@ export async function saveFormAction({ request }) {
         footerShowReset,
         footerFullWidth,
         rules: parsedRules,
+        emailTemplates: parsedEmailTemplates,
         fields: parsedFields.map((f) => ({
             ...f,
             required: !!f.required,

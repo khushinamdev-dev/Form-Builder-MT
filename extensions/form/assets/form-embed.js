@@ -211,7 +211,8 @@
       gridSpan = isNaturallyFull ? "span 6" : "span 3";
     }
 
-    return `<div class="form-builder-embed__field" style="grid-column:${gridSpan}; margin-bottom:8px;">${labelHtml}${input}</div>`;
+    const originalRequired = field.required ? "true" : "false";
+    return `<div class="form-builder-embed__field" data-field-id="${field.id}" data-original-required="${originalRequired}" style="grid-column:${gridSpan}; margin-bottom:8px;">${labelHtml}${input}</div>`;
   }
 
   function renderForm(container, data, proxyUrl) {
@@ -531,6 +532,140 @@
         alert("Failed to submit form. Please check your connection.");
         btn.disabled = false;
         btn.innerText = "Submit";
+      }
+    });
+
+    // Initial evaluation of conditional rules
+    evaluateRules(form, data.rules || []);
+
+    // Re-evaluate rules on user inputs or value changes
+    form.addEventListener("input", function () {
+      evaluateRules(form, data.rules || []);
+    });
+    form.addEventListener("change", function () {
+      evaluateRules(form, data.rules || []);
+    });
+  }
+
+  function getFieldValue(form, fieldId) {
+    const inputs = form.querySelectorAll(`[name="${fieldId}"]`);
+    if (inputs.length === 0) return "";
+    
+    if (inputs[0].type === "checkbox" || inputs[0].type === "radio") {
+      const checked = Array.from(inputs).filter(i => i.checked);
+      if (inputs[0].type === "checkbox") {
+        return checked.map(i => i.value);
+      }
+      return checked.length > 0 ? checked[0].value : "";
+    }
+    return inputs[0].value || "";
+  }
+
+  function evaluateRules(form, rules) {
+    console.log("[Form Builder] Evaluating storefront conditional rules:", rules);
+    if (!rules || rules.length === 0) return;
+
+    // 1. Reset all fields to default state
+    const containers = form.querySelectorAll(".form-builder-embed__field");
+    containers.forEach((container) => {
+      container.style.display = "";
+      const origRequired = container.getAttribute("data-original-required") === "true";
+      const inputs = container.querySelectorAll("input, textarea, select");
+      inputs.forEach((input) => {
+        if (origRequired) {
+          input.setAttribute("required", "required");
+        } else {
+          input.removeAttribute("required");
+        }
+      });
+      const labelEl = container.querySelector(".form-builder-embed__label");
+      if (labelEl) {
+        const reqMark = labelEl.querySelector(".form-builder-embed__required");
+        if (origRequired) {
+          if (!reqMark) {
+            labelEl.insertAdjacentHTML("beforeend", ' <span class="form-builder-embed__required">*</span>');
+          }
+        } else {
+          if (reqMark) {
+            reqMark.remove();
+          }
+        }
+      }
+    });
+
+    // 2. Evaluate active conditional rules
+    rules.forEach((rule) => {
+      const { fieldId, condition, value: ruleVal, action, targetFieldId } = rule;
+      if (!fieldId || !targetFieldId) return;
+
+      const val = getFieldValue(form, fieldId);
+      console.log(`[Form Builder] Rule Trigger Field: "${fieldId}" | Value: "${val}" | Expecting: "${ruleVal}"`);
+
+      let matches = false;
+      const cleanVal = (ruleVal || "").trim().toLowerCase();
+
+      switch (condition) {
+        case "empty": {
+          matches = Array.isArray(val) ? val.length === 0 : !val.toString().trim();
+          break;
+        }
+        case "not_empty": {
+          matches = Array.isArray(val) ? val.length > 0 : !!val.toString().trim();
+          break;
+        }
+        case "equals": {
+          if (Array.isArray(val)) {
+            matches = val.some(v => v.toLowerCase() === cleanVal);
+          } else {
+            matches = val.toString().trim().toLowerCase() === cleanVal;
+          }
+          break;
+        }
+        case "contains": {
+          if (Array.isArray(val)) {
+            matches = val.some(v => v.toLowerCase().includes(cleanVal));
+          } else {
+            matches = val.toString().toLowerCase().includes(cleanVal);
+          }
+          break;
+        }
+      }
+
+      console.log(`[Form Builder] Rule Match Result: ${matches} (Action: "${action}" -> target: "${targetFieldId}")`);
+
+      // Apply action
+      const targetContainer = form.querySelector(`[data-field-id="${targetFieldId}"]`);
+      if (!targetContainer) {
+        console.warn(`[Form Builder] Target container not found for field: "${targetFieldId}"`);
+        return;
+      }
+
+      const targetInputs = targetContainer.querySelectorAll("input, textarea, select");
+      const labelEl = targetContainer.querySelector(".form-builder-embed__label");
+
+      if (action === "hide") {
+        if (matches) {
+          targetContainer.style.display = "none";
+          targetInputs.forEach(i => i.removeAttribute("required"));
+        }
+      } else if (action === "show") {
+        if (!matches) {
+          targetContainer.style.display = "none";
+          targetInputs.forEach(i => i.removeAttribute("required"));
+        }
+      } else if (action === "require") {
+        if (matches) {
+          targetInputs.forEach(i => i.setAttribute("required", "required"));
+          if (labelEl && !labelEl.querySelector(".form-builder-embed__required")) {
+            labelEl.insertAdjacentHTML("beforeend", ' <span class="form-builder-embed__required">*</span>');
+          }
+        }
+      } else if (action === "optional") {
+        if (matches) {
+          targetInputs.forEach(i => i.removeAttribute("required"));
+          const reqMark = labelEl ? labelEl.querySelector(".form-builder-embed__required") : null;
+          if (reqMark) reqMark.remove();
+        }
       }
     });
   }

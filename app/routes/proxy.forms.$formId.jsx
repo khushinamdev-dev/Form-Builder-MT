@@ -68,6 +68,7 @@ function buildFormPayload(metaobject) {
       redirectUrl: config.redirectUrl || "",
       customerTag: config.customerTag || "",
       fields: config.fields || [],
+      rules: config.rules || [],
       // All appearance fields
       borderRadius: config.borderRadius || "8px",
       fontFamily: config.fontFamily || "inherit",

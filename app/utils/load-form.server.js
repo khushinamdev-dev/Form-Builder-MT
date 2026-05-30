@@ -95,5 +95,6 @@ export async function loadFormForEdit(admin, formId) {
         fields: savedFields,
         pages: savedPages,
         rules: bio.rules || [],
+        emailTemplates: bio.emailTemplates || null,
     };
 }

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router"
 export default function Index() {
   const navigate = useNavigate();
   return (
-    <s-page heading="Form Builder" inline-size="base">
+    <s-page heading="Form Builder" >
       <s-stack padding="base none" gap="base"  >
         <s-heading>Any questions? Reach out anytime - We're here to help!</s-heading>
       </s-stack>
