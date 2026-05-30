@@ -1,6 +1,62 @@
 import { authenticate } from "../shopify.server";
 import { parseFormCategory } from "../utils/form-category";
 
+async function sendResendWelcomeEmail(customerEmail, customerName, storeName) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const senderEmail = process.env.RESEND_SENDER_EMAIL || "onboarding@resend.dev";
+
+  if (!apiKey) {
+    console.warn("Resend email notification skipped: RESEND_API_KEY environment variable is not defined.");
+    return;
+  }
+
+  if (!customerEmail) {
+    console.warn("Resend welcome email skipped: No customer email address detected in submission payload.");
+    return;
+  }
+
+  const payload = {
+    from: `"${storeName}" <${senderEmail}>`,
+    to: [customerEmail],
+    subject: `Thank you for signing up at ${storeName}!`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e1e3e5; border-radius: 12px; background: #ffffff;">
+        <h2 style="color: #008060; margin-top: 0;">Welcome, ${customerName}!</h2>
+        <p style="font-size: 14px; color: #202223; line-height: 1.6;">
+          Thank you so much for signing up at <strong>${storeName}</strong>. We have successfully received your registration details!
+        </p>
+        <p style="font-size: 14px; color: #202223; line-height: 1.6;">
+          Our team is currently processing your request. We will keep you updated as soon as your account is reviewed.
+        </p>
+        <hr style="border: none; border-top: 1px solid #e1e3e5; margin: 24px 0;" />
+        <p style="font-size: 12px; color: #6d7175; margin-bottom: 0;">
+          This welcome notification was sent automatically by ${storeName}. If you have any questions, feel free to reply to this message.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error("Resend API rejected transmission:", data);
+    } else {
+      console.log(`Welcome email triggered successfully via Resend. Message ID: ${data.id}`);
+    }
+  } catch (err) {
+    console.error("Network failure trying to contact Resend API:", err);
+  }
+}
+
 function jsonResponse(body, status = 200) {
   return Response.json(body, {
     status,
@@ -366,6 +422,15 @@ export const action = async ({ request, params }) => {
       payload["Email"] ||
       "Anonymous";
 
+    const emailKey = Object.keys(payload).find(k => k.toLowerCase() === "email" || k.toLowerCase().includes("email"));
+    const customerEmail = emailKey ? payload[emailKey] : null;
+
+    let config = {};
+    try {
+      config = JSON.parse(fields.bio || "{}");
+    } catch (_) {}
+    const storeName = config.headerTitle || formName || "Our Store";
+
     await admin.graphql(
       `
             mutation CreateSubmission($metaobject: MetaobjectCreateInput!) {
@@ -391,6 +456,10 @@ export const action = async ({ request, params }) => {
         },
       },
     );
+
+    if (customerEmail) {
+      sendResendWelcomeEmail(customerEmail, customerName, storeName);
+    }
 
     return jsonResponse({ success: true });
   } catch (err) {
