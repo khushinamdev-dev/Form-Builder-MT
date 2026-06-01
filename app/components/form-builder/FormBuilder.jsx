@@ -4,6 +4,7 @@ import {
   useSubmit,
   useActionData,
   useSearchParams,
+  useOutletContext,
 } from "react-router";
 import Editor from "react-simple-wysiwyg";
 
@@ -350,6 +351,7 @@ const tabs = [
   { id: "mail", label: "Mail", icon: "email" },
   { id: "rules", label: "Rules", icon: "filter" },
   { id: "settings", label: "Settings", icon: "settings" },
+  { id: "translation", label: "Translation", icon: "globe" }
 ];
 
 // Business/Company singleton field definitions (only one of each allowed per form)
@@ -541,22 +543,22 @@ function generateFormId() {
 }
 
 const isBusinessFieldInUse = (item, fields) => {
-  if (!item.singletonType) return false;
+  if (!item?.singletonType) return false;
 
-  return fields.some((f) => {
+  return (fields || []).some((f) => {
     // 1. Direct singletonType match
-    if (f.singletonType === item.singletonType) return true;
+    if (f?.singletonType === item.singletonType) return true;
 
     // 2. ID match fallbacks for initial B2B fields
-    if (item.singletonType === "biz-website" && (f.id === "website" || f.id === "biz-website" || f.type === "biz-website")) return true;
-    if (item.singletonType === "biz-address" && (f.id === "address" || f.id === "biz-address" || f.type === "biz-address")) return true;
-    if (item.singletonType === "biz-type" && (f.id === "businessType" || f.id === "biz-type" || f.type === "biz-type")) return true;
-    if (item.singletonType === "biz-tax-id" && (f.id === "taxId" || f.id === "biz-tax-id" || f.type === "biz-tax-id")) return true;
-    if (item.singletonType === "biz-tax-doc" && (f.id === "taxDoc" || f.id === "biz-tax-doc" || f.type === "biz-tax-doc")) return true;
+    if (item.singletonType === "biz-website" && (f?.id === "website" || f?.id === "biz-website" || f?.type === "biz-website")) return true;
+    if (item.singletonType === "biz-address" && (f?.id === "address" || f?.id === "biz-address" || f?.type === "biz-address")) return true;
+    if (item.singletonType === "biz-type" && (f?.id === "businessType" || f?.id === "biz-type" || f?.type === "biz-type")) return true;
+    if (item.singletonType === "biz-tax-id" && (f?.id === "taxId" || f?.id === "biz-tax-id" || f?.type === "biz-tax-id")) return true;
+    if (item.singletonType === "biz-tax-doc" && (f?.id === "taxDoc" || f?.id === "biz-tax-doc" || f?.type === "biz-tax-doc")) return true;
 
     // 3. Robust Label-based semantic match (helps for old/legacy custom forms)
-    const normLabel = (f.label || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const normItemLabel = (item.label || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const normLabel = (f?.label || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const normItemLabel = (item?.label || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
     // Exact semantic label match (e.g. "company name" === "company name")
     if (normLabel && normLabel === normItemLabel) return true;
@@ -588,21 +590,52 @@ export default function FormBuilder({ config, existingForm = null }) {
   );
 
   // Builder states
-  const [fields, setFields] = useState(() =>
-    existingForm?.fields?.length ? existingForm.fields : config.initialFields,
-  );
+  const [fields, setFields] = useState(() => {
+    const raw = existingForm?.fields?.length ? existingForm.fields : config.initialFields;
+    return (raw || []).filter(Boolean);
+  });
   const [previewRatings, setPreviewRatings] = useState({});
-  const [pages, setPages] = useState(() =>
-    existingForm?.pages?.length
-      ? existingForm.pages
-      : [{ id: 1, title: "Page 1" }],
-  );
+  const [pages, setPages] = useState(() => {
+    const raw = existingForm?.pages?.length ? existingForm.pages : [{ id: 1, title: "Page 1" }];
+    return (raw || []).filter(Boolean);
+  });
   const [addingToPage, setAddingToPage] = useState(1);
   const [activePreviewPage, setActivePreviewPage] = useState(1);
   const [collapsedPages, setCollapsedPages] = useState({});
   const [selectedFieldId, setSelectedFieldId] = useState(null);
   const [activeTab, setActiveTab] = useState("elements"); // "elements" | "appearance" | "after-submit" | "mail" | "integration" | "settings"
   const [previewMode, setPreviewMode] = useState("desktop"); // "desktop" | "mobile"
+
+  // Fetch store languages/locales from parent outlet context safely
+  let context = {};
+  try {
+    context = useOutletContext() || {};
+  } catch (_) {}
+  const shopLocales = context.shopLocales || [
+    { locale: "en", name: "English", primary: true, published: true }
+  ];
+
+  const [translations, setTranslations] = useState(() => existingForm?.translations || {});
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    const secondary = shopLocales.find(l => !l.primary);
+    return secondary ? secondary.locale : (shopLocales[0]?.locale || "en");
+  });
+
+  const updateTranslation = (locale, key, value, fieldId = null) => {
+    handleFieldInput();
+    setTranslations((prev) => {
+      const next = { ...prev };
+      if (!next[locale]) next[locale] = { fields: {} };
+      if (fieldId) {
+        if (!next[locale].fields) next[locale].fields = {};
+        if (!next[locale].fields[fieldId]) next[locale].fields[fieldId] = {};
+        next[locale].fields[fieldId][key] = value;
+      } else {
+        next[locale][key] = value;
+      }
+      return next;
+    });
+  };
 
   const togglePageCollapse = (pageId) => {
     setCollapsedPages((prev) => ({
@@ -636,6 +669,9 @@ export default function FormBuilder({ config, existingForm = null }) {
   );
   const [footerFullWidth, setFooterFullWidth] = useState(
     () => !!existingForm?.footerFullWidth,
+  );
+  const [multiPageLayout, setMultiPageLayout] = useState(
+    () => existingForm?.multiPageLayout || "buttons",
   );
   const [bannerVisible, setBannerVisible] = useState(true);
   const [toastMessage, setToastMessage] = useState("");
@@ -683,6 +719,16 @@ export default function FormBuilder({ config, existingForm = null }) {
       setFormSubmitted(false);
     }
   }, [activeTab]);
+
+  // Safety sync to ensure selectedFieldId is set to null if the referenced field is deleted or no longer exists
+  useEffect(() => {
+    if (selectedFieldId && selectedFieldId !== "form-header" && selectedFieldId !== "form-footer") {
+      const exists = fields.some((f) => f.id === selectedFieldId);
+      if (!exists) {
+        setSelectedFieldId(null);
+      }
+    }
+  }, [selectedFieldId, fields]);
 
   // Email Template States
   const [activeEmailTemplate, setActiveEmailTemplate] = useState(null);
@@ -948,8 +994,10 @@ export default function FormBuilder({ config, existingForm = null }) {
     data.append("footerSubmitText", footerSubmitText);
     data.append("footerShowReset", footerShowReset ? "true" : "false");
     data.append("footerFullWidth", footerFullWidth ? "true" : "false");
+    data.append("multiPageLayout", multiPageLayout);
     data.append("rules", JSON.stringify(rules));
     data.append("emailTemplates", JSON.stringify(emailTemplates));
+    data.append("translations", JSON.stringify(translations));
     data.append("isNew", isEditing ? "false" : "true");
     submit(data, { method: "post" });
   };
@@ -963,7 +1011,7 @@ export default function FormBuilder({ config, existingForm = null }) {
   const buildSnapshot = () => JSON.stringify({
     formName, formHeaderTitle, formDescription,
     footerText, footerPreviousText, footerNextText, footerSubmitText,
-    footerShowReset, footerFullWidth,
+    footerShowReset, footerFullWidth, multiPageLayout,
     primaryColor, borderRadius, fontFamily, backgroundColor,
     titleColor, titleFontSize, descriptionColor, descriptionFontSize,
     labelColor, labelFontSize, inputBgColor, inputTextColor, inputBorderColor, btnTextColor,
@@ -971,6 +1019,7 @@ export default function FormBuilder({ config, existingForm = null }) {
     redirectUrl, customerTag, rules,
     fields, pages,
     emailTemplates,
+    translations,
   });
 
   // Show/hide save bar based on whether current state differs from saved snapshot
@@ -1052,6 +1101,7 @@ export default function FormBuilder({ config, existingForm = null }) {
     setFooterSubmitText(existingForm?.footerSubmitText || "Submit");
     setFooterShowReset(!!existingForm?.footerShowReset);
     setFooterFullWidth(!!existingForm?.footerFullWidth);
+    setMultiPageLayout(existingForm?.multiPageLayout || "buttons");
     setFields(existingForm?.fields?.length ? existingForm.fields : config.initialFields);
     setPages(existingForm?.pages?.length ? existingForm.pages : [{ id: 1, title: "Page 1" }]);
     // Styling states reset
@@ -1078,6 +1128,7 @@ export default function FormBuilder({ config, existingForm = null }) {
     setCustomerTag(existingForm?.customerTag || "");
     setRules(existingForm?.rules || []);
     setEmailTemplates(existingForm?.emailTemplates || config.emailTemplates);
+    setTranslations(existingForm?.translations || {});
     // Hide the save bar and re-enable the watcher after React flushes
     setTimeout(() => {
       isResetting.current = false;
@@ -1140,12 +1191,12 @@ export default function FormBuilder({ config, existingForm = null }) {
   }, [
     fields, pages, formName, formHeaderTitle, formDescription,
     footerText, footerPreviousText, footerNextText, footerSubmitText,
-    footerShowReset, footerFullWidth,
+    footerShowReset, footerFullWidth, multiPageLayout,
     primaryColor, borderRadius, fontFamily, backgroundColor,
     titleColor, titleFontSize, descriptionColor, descriptionFontSize,
     labelColor, labelFontSize, inputBgColor, inputTextColor, inputBorderColor, btnTextColor,
     afterSubmitAction, successTitle, afterSubmitDiscount, successMessage,
-    redirectUrl, customerTag, rules, emailTemplates,
+    redirectUrl, customerTag, rules, emailTemplates, translations,
   ]);
   return (
     <s-page>
@@ -1196,7 +1247,6 @@ export default function FormBuilder({ config, existingForm = null }) {
       {/* Horizontal Navigation Tabs (Placed above middle elements panel) */}
       <s-stack direction="inline" gap="base" padding="base none">
         {tabs
-          .filter((tab) => formCategory === "b2b" || tab.id !== "settings")
           .map((tab) => (
             <s-button
               key={tab.id}
@@ -1239,9 +1289,6 @@ export default function FormBuilder({ config, existingForm = null }) {
                                 handleFieldInput();
                                 const nextCategory = formCategory === "b2b" ? "custom" : "b2b";
                                 setFormCategory(nextCategory);
-                                if (nextCategory !== "b2b" && activeTab === "settings") {
-                                  setActiveTab("elements");
-                                }
                               }}
 
                             >
@@ -1259,9 +1306,6 @@ export default function FormBuilder({ config, existingForm = null }) {
                                       handleFieldInput();
                                       const checked = e.target.checked;
                                       setFormCategory(checked ? "b2b" : "custom");
-                                      if (!checked && activeTab === "settings") {
-                                        setActiveTab("elements");
-                                      }
                                     }}
                                   ></s-checkbox>
                                 </s-stack>
@@ -1346,137 +1390,97 @@ export default function FormBuilder({ config, existingForm = null }) {
                             return (
                               <s-stack gap="small" key={page.id}>
                                 {/* Page Title Row */}
-                                <s-stack
-                                  direction="inline"
-                                  gap="small"
+                                <div
+                                  style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
                                   className="cursor-pointer"
                                   onClick={() => togglePageCollapse(page.id)}
                                 >
                                   <s-icon type={collapsedPages[page.id] ? "caret-right" : "caret-down"} />
-                                  {/* <svg
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                    style={{
-                                      color: "#6d7175",
-                                      transform: collapsedPages[page.id]
-                                        ? "rotate(-90deg)"
-                                        : "rotate(0deg)",
-                                      transition: "transform 0.2s ease",
-                                    }}
-                                  >
-                                    <path d="m6 9 6 6 6-6" />
-                                  </svg> */}
-
                                   <s-icon type="folder" />
-                                  {/* <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                    style={{ color: "#6d7175" }}
-                                  >
-                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                                  </svg> */}
-                                  <s-text
-
-                                  >
-                                    {page.title}
-                                  </s-text>
+                                  <span style={{ fontSize: "14px", color: "#202223" }}>{page.title}</span>
                                   {pages.length > 1 && (
-                                    <s-button
-
+                                    <button
+                                      type="button"
                                       title="Delete Page"
+                                      style={{
+                                        marginLeft: "auto",
+                                        background: "none",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        padding: "2px 4px",
+                                        borderRadius: "4px",
+                                      }}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         deletePage(page.id);
                                       }}
                                     >
-                                      {/* <svg
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      >
-                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                        <line
-                                          x1="10"
-                                          y1="11"
-                                          x2="10"
-                                          y2="17"
-                                        ></line>
-                                        <line
-                                          x1="14"
-                                          y1="11"
-                                          x2="14"
-                                          y2="17"
-                                        ></line>
-                                      </svg> */}
                                       <s-icon type="delete" />
-                                    </s-button>
+                                    </button>
                                   )}
-                                </s-stack>
+                                </div>
 
                                 {/* Indented Fields Tree with Left Dotted Line */}
                                 {!collapsedPages[page.id] && (
-                                  <s-stack className="tree-dotted-line">
-                                    {pageFields.map((field, idx) => (
-
-
-
-                                      <s-button inlineSize="fill" key={field.id}
+                                  <div className="tree-dotted-line">
+                                    {pageFields.map((field) => (
+                                      <button
+                                        key={field.id}
+                                        type="button"
                                         className={`tree-field-item ${selectedFieldId === field.id ? "active" : ""}`}
-                                        onClick={() => setSelectedFieldId(field.id)} >
+                                        style={{ width: "100%", background: "none", border: "none", textAlign: "left", cursor: "pointer" }}
+                                        onClick={() => setSelectedFieldId(field.id)}
+                                      >
                                         {field.label}
-                                      </s-button>
+                                      </button>
                                     ))}
 
                                     {/* Add element button inside the indent */}
-                                    <s-box
+                                    <button
                                       className="add-tree-item"
+                                      type="button"
                                       onClick={() => {
                                         setAddingToPage(page.id);
                                         setShowAddMenu(true);
                                       }}
-                                      padding="none"
+                                      style={{
+                                        background: "none",
+                                        border: "none",
+                                        width: "100%",
+                                        textAlign: "left",
+                                      }}
                                     >
-                                      <s-stack
-                                        direction="inline"
-                                        alignItems="center"
-                                        gap="small"
-                                      >
-                                        <s-icon type="plus-circle"></s-icon>
-                                        <s-text
+                                      <span style={{ display: "flex", alignItems: "center", gap: "6px", pointerEvents: "none" }}>
+                                        <s-icon type="plus-circle" style={{ pointerEvents: "none" }}></s-icon>
+                                        <span
                                           style={{
-                                            color: "#005ccc",
                                             fontSize: "14px",
                                             fontWeight: "500",
+                                            pointerEvents: "none",
                                           }}
                                         >
                                           Add element
-                                        </s-text>
-                                      </s-stack>
-                                    </s-box>
-                                  </s-stack>
+                                        </span>
+                                      </span>
+                                    </button>
+                                  </div>
                                 )}
                               </s-stack>
                             );
                           })}
 
                           {/* Add page button outside the indent */}
-                          <s-box
+                          <button
                             className="add-tree-item"
-                            padding="none"
+                            type="button"
+                            style={{
+                              background: "none",
+                              border: "none",
+                              width: "100%",
+                              textAlign: "left",
+                            }}
                             onClick={() => {
                               const newPageNum = pages.length + 1;
                               setPages([
@@ -1487,16 +1491,11 @@ export default function FormBuilder({ config, existingForm = null }) {
                               triggerToast(`Page ${newPageNum} added`);
                             }}
                           >
-                            <s-stack
-                              direction="inline"
-                              alignItems="center"
-                              gap="small"
-                            >
-                              <s-icon type="plus-circle"></s-icon>
-
-                              <s-text>Add page</s-text>
-                            </s-stack>
-                          </s-box>
+                            <span style={{ display: "flex", alignItems: "center", gap: "6px", pointerEvents: "none" }}>
+                              <s-icon type="plus-circle" style={{ pointerEvents: "none" }}></s-icon>
+                              <span style={{ pointerEvents: "none" }}>Add page</span>
+                            </span>
+                          </button>
 
                           {/* Premium Clickable Footer card in the Elements list */}
                           <s-button
@@ -1664,7 +1663,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                           </s-stack>
                         </s-stack>
                       </s-section>
-                    ) : (
+                    ) : selectedField ? (
                       // Detail Editor when a field is selected
                       <s-section>
                         <s-stack gap="base" padding="none" >
@@ -1751,6 +1750,7 @@ export default function FormBuilder({ config, existingForm = null }) {
 
                                   <s-select
                                     label="Default Country"
+                                    value={selectedField.defaultCountry || "IN"}
                                     onChange={(e) => {
                                       handleFieldInput();
                                       updateSelectedField(
@@ -1759,7 +1759,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                       );
                                     }}>
                                     {countriesList.map((c) => (
-                                      <s-option value={selectedField.defaultCountry || "IN"}
+                                      <s-option
                                         key={c.code} value={c.code}>
                                         {c.name} ({c.dial})
                                       </s-option>
@@ -2048,7 +2048,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                           </s-stack>
                         </s-stack>
                       </s-section>
-                    )}
+                    ) : null}
                   </>
                 )}
 
@@ -3035,10 +3035,216 @@ export default function FormBuilder({ config, existingForm = null }) {
                         </s-stack>
                       )}
 
+                      {pages.length > 1 && (
+                        <s-stack gap="small">
+                          <s-select
+                            label="Multi-page Form Layout"
+                            value={multiPageLayout}
+                            onChange={(e) => {
+                              handleFieldInput();
+                              setMultiPageLayout(e.currentTarget.value);
+                            }}
+                          >
+                            <s-option value="buttons">Previous & Next Buttons</s-option>
+                            <s-option value="vertical">Vertically one by one</s-option>
+                          </s-select>
+                        </s-stack>
+                      )}
+
                       {/* <s-checkbox
                         label="Require customer login before submission"
                         id="require-account-field"
                       ></s-checkbox> */}
+                    </s-stack>
+                  </s-section>
+                )}
+
+                {activeTab === "translation" && (
+                  <s-section>
+                    <s-stack gap="base">
+                      <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+                        <s-heading level="3">Form Translations</s-heading>
+                        
+                        {/* Target Language Dropdown Selector */}
+                        <s-box inlineSize="200px">
+                          <s-select
+                            label="Target Language"
+                            value={selectedLanguage}
+                            onChange={(e) => setSelectedLanguage(e.currentTarget.value)}
+                          >
+                            {shopLocales.map((locale) => (
+                              <s-option key={locale.locale} value={locale.locale}>
+                                {locale.name} ({locale.locale.toUpperCase()}) {locale.primary ? "— Primary" : ""}
+                              </s-option>
+                            ))}
+                          </s-select>
+                        </s-box>
+                      </s-stack>
+
+                      <s-text style={{ fontSize: "13px", color: "#6d7175" }}>
+                        Translate your form fields and buttons into any language supported by your store.
+                      </s-text>
+
+                      {/* General/Form Level Translations */}
+                      <s-box 
+                        style={{ 
+                          border: "1px solid #e1e3e5", 
+                          borderRadius: "8px", 
+                          padding: "16px", 
+                          background: "#f9fafb",
+                          marginTop: "8px"
+                        }}
+                      >
+                        <s-stack gap="small">
+                          <s-heading level="4" style={{ fontSize: "13px", fontWeight: "700", textTransform: "uppercase", color: "#202223", letterSpacing: "0.5px" }}>
+                            General Form Content
+                          </s-heading>
+                          
+                          <s-text-field
+                            label="Form Name"
+                            value={translations[selectedLanguage]?.formName || ""}
+                            placeholder={`Original: ${formName}`}
+                            onChange={(e) => updateTranslation(selectedLanguage, "formName", e.currentTarget.value)}
+                          />
+
+                          <s-text-field
+                            label="Header Title"
+                            value={translations[selectedLanguage]?.headerTitle || ""}
+                            placeholder={`Original: ${formHeaderTitle}`}
+                            onChange={(e) => updateTranslation(selectedLanguage, "headerTitle", e.currentTarget.value)}
+                          />
+
+                          <s-textarea
+                            label="Description"
+                            value={translations[selectedLanguage]?.description || ""}
+                            placeholder={`Original: ${formDescription}`}
+                            onChange={(e) => updateTranslation(selectedLanguage, "description", e.currentTarget.value)}
+                            rows={3}
+                          />
+
+                          <s-grid gridTemplateColumns="repeat(3, 1fr)" gap="small" style={{ marginTop: "4px" }}>
+                            <s-grid-item>
+                              <s-text-field
+                                label="Back Button"
+                                value={translations[selectedLanguage]?.footerPreviousText || ""}
+                                placeholder={`Original: ${footerPreviousText}`}
+                                onChange={(e) => updateTranslation(selectedLanguage, "footerPreviousText", e.currentTarget.value)}
+                              />
+                            </s-grid-item>
+                            <s-grid-item>
+                              <s-text-field
+                                label="Next Button"
+                                value={translations[selectedLanguage]?.footerNextText || ""}
+                                placeholder={`Original: ${footerNextText}`}
+                                onChange={(e) => updateTranslation(selectedLanguage, "footerNextText", e.currentTarget.value)}
+                              />
+                            </s-grid-item>
+                            <s-grid-item>
+                              <s-text-field
+                                label="Submit Button"
+                                value={translations[selectedLanguage]?.footerSubmitText || ""}
+                                placeholder={`Original: ${footerSubmitText}`}
+                                onChange={(e) => updateTranslation(selectedLanguage, "footerSubmitText", e.currentTarget.value)}
+                              />
+                            </s-grid-item>
+                          </s-grid>
+                        </s-stack>
+                      </s-box>
+
+                      {/* Fields Translations */}
+                      <s-stack gap="base" style={{ marginTop: "12px" }}>
+                        <s-heading level="4" style={{ fontSize: "14px", fontWeight: "600", color: "#202223" }}>
+                          Field Translations
+                        </s-heading>
+
+                        {fields.map((field) => {
+                          const translationsForLang = translations[selectedLanguage] || {};
+                          const fieldTrans = translationsForLang.fields?.[field.id] || {};
+
+                          return (
+                            <s-box 
+                              key={field.id}
+                              style={{ 
+                                border: "1px solid #e1e3e5", 
+                                borderRadius: "8px", 
+                                padding: "16px", 
+                                background: "#ffffff" 
+                              }}
+                            >
+                              <s-stack gap="small">
+                                <s-stack direction="inline" justifyContent="space-between" alignItems="center" style={{ borderBottom: "1px solid #f1f1f1", paddingBottom: "8px" }}>
+                                  <s-text fontWeight="semibold" style={{ fontSize: "14px" }}>
+                                    {field.label}
+                                  </s-text>
+                                  <s-badge tone="subdued" style={{ textTransform: "uppercase" }}>{field.type}</s-badge>
+                                </s-stack>
+
+                                <s-grid gridTemplateColumns="repeat(2, 1fr)" gap="base" style={{ marginTop: "4px" }}>
+                                  <s-grid-item>
+                                    <s-text-field
+                                      label="Translated Label"
+                                      value={fieldTrans.label || ""}
+                                      placeholder={`Original: ${field.label}`}
+                                      onChange={(e) => updateTranslation(selectedLanguage, "label", e.currentTarget.value, field.id)}
+                                    />
+                                  </s-grid-item>
+
+                                  {field.type !== "file" &&
+                                    field.type !== "divider" &&
+                                    field.type !== "rating" &&
+                                    field.type !== "feedback" &&
+                                    field.type !== "signature" &&
+                                    field.type !== "product" && (
+                                      <s-grid-item>
+                                        <s-text-field
+                                          label="Translated Placeholder"
+                                          value={fieldTrans.placeholder || ""}
+                                          placeholder={`Original: ${field.placeholder || ""}`}
+                                          onChange={(e) => updateTranslation(selectedLanguage, "placeholder", e.currentTarget.value, field.id)}
+                                        />
+                                      </s-grid-item>
+                                    )}
+                                </s-grid>
+
+                                <s-text-field
+                                  label="Translated Description"
+                                  value={fieldTrans.description || ""}
+                                  placeholder={`Original: ${field.description || ""}`}
+                                  onChange={(e) => updateTranslation(selectedLanguage, "description", e.currentTarget.value, field.id)}
+                                />
+
+                                {/* Choices/Options Translations */}
+                                {field.options && field.options.length > 0 && (
+                                  <s-stack gap="extra-tight" style={{ marginTop: "8px", borderTop: "1px dashed #f1f1f1", paddingTop: "8px" }}>
+                                    <s-text style={{ fontSize: "11px", fontWeight: "700", color: "#6d7175", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                      Options
+                                    </s-text>
+                                    <s-grid gridTemplateColumns="repeat(2, 1fr)" gap="small">
+                                      {field.options.map((opt, optIdx) => {
+                                        const optTrans = fieldTrans.options || [];
+                                        const value = optTrans[optIdx] || "";
+                                        return (
+                                          <s-grid-item key={optIdx}>
+                                            <s-text-field
+                                              label={`Option: "${opt}"`}
+                                              value={value}
+                                              onChange={(e) => {
+                                                const nextOpts = [...optTrans];
+                                                nextOpts[optIdx] = e.currentTarget.value;
+                                                updateTranslation(selectedLanguage, "options", nextOpts, field.id);
+                                              }}
+                                            />
+                                          </s-grid-item>
+                                        );
+                                      })}
+                                    </s-grid>
+                                  </s-stack>
+                                )}
+                              </s-stack>
+                            </s-box>
+                          );
+                        })}
+                      </s-stack>
                     </s-stack>
                   </s-section>
                 )}
@@ -3374,7 +3580,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                     </div>
 
                     {/* Stepper Progress Bar for Multi-page Forms */}
-                    {pages.length > 1 && (
+                    {pages.length > 1 && multiPageLayout === "buttons" && (
                       <div
                         className="stepper-progress-container"
                         style={{
@@ -3477,899 +3683,924 @@ export default function FormBuilder({ config, existingForm = null }) {
                       </div>
                     )}
 
-                    {/* Form Fields Grid */}
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns:
-                          previewMode === "mobile" ? "1fr" : "repeat(6, 1fr)",
-                        gap: "16px",
-                      }}
-                    >
-                      {fields
-                        .filter((f) => (f.page || 1) === activePreviewPage)
-                        .map((field) => {
-                          const isNaturallyFull = [
-                            "file",
-                            "select",
-                            "dropdown",
-                            "textarea",
-                            "heading",
-                            "paragraph",
-                            "divider",
-                            "button",
-                            "repeater",
-                            "matrix",
-                            "html",
-                            "image-options",
-                            "signature",
-                            "product",
-                            "feedback",
-                            "hidden",
-                          ].includes(field.type);
-                          let gridSpan = "span 6";
-                          if (previewMode !== "mobile") {
-                            if (field.columnWidth === "33%") {
-                              gridSpan = "span 2";
-                            } else if (field.columnWidth === "50%") {
-                              gridSpan = "span 3";
-                            } else if (field.columnWidth === "100%") {
-                              gridSpan = "span 6";
-                            } else {
-                              gridSpan = isNaturallyFull ? "span 6" : "span 3";
-                            }
-                          }
+                    {/* Form Fields Grid wrapped in page layout */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "100%" }}>
+                      {pages.map((page) => {
+                        if (multiPageLayout === "buttons" && page.id !== activePreviewPage && pages.length > 1) {
+                          return null;
+                        }
 
-                          const showLabel =
-                            !field.hideLabel &&
-                            field.type !== "heading" &&
-                            field.type !== "paragraph" &&
-                            field.type !== "divider" &&
-                            field.type !== "button" &&
-                            field.type !== "hidden";
-                          const showAsterisk =
-                            field.required &&
-                            (showLabel || field.showRequiredNoteIfHideLabel);
+                        const pageFields = fields.filter((f) => (f.page || 1) === page.id);
 
-                          return (
+                        return (
+                          <div key={page.id} style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+                            {multiPageLayout === "vertical" && pages.length > 1 && (
+                              <div style={{
+                                padding: "12px 16px",
+                                background: "#f6f6f7",
+                                borderLeft: `4px solid ${primaryColor}`,
+                                borderRadius: "4px",
+                                marginTop: page.id > 1 ? "24px" : "8px",
+                                marginBottom: "8px",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center"
+                              }}>
+                                <span style={{ fontWeight: "600", fontSize: "14px", color: "#202223" }}>{page.title}</span>
+                                <span style={{ fontSize: "11px", color: "#6d7175", textTransform: "uppercase", fontWeight: "600" }}>Step {page.id} of {pages.length}</span>
+                              </div>
+                            )}
                             <div
-                              key={field.id}
                               style={{
-                                gridColumn: gridSpan,
-                                opacity: draggedFieldId === field.id ? 0.4 : 1,
-                                transition: "opacity 0.2s ease, transform 0.2s ease",
+                                display: "grid",
+                                gridTemplateColumns:
+                                  previewMode === "mobile" ? "1fr" : "repeat(6, 1fr)",
+                                gap: "16px",
+                                width: "100%",
                               }}
-                              draggable={true}
-                              onDragStart={(e) => handleDragStart(e, field.id)}
-                              onDragOver={(e) => handleDragOver(e, field.id)}
-                              onDragEnd={handleDragEnd}
                             >
-                              <div
-                                className="draggable-field-wrapper"
-                                style={{
-                                  padding: "8px",
-                                  border:
-                                    selectedFieldId === field.id
-                                      ? "1px solid #008060"
-                                      : "1px dashed #e1e3e5",
-                                  backgroundColor: selectedFieldId === field.id ? "rgba(0, 128, 96, 0.02)" : "#ffffff",
-                                  borderRadius: "8px",
-                                  cursor: "grab",
-                                  position: "relative",
-                                }}
-                                onClick={() => setSelectedFieldId(field.id)}
-                              >
-                                {/* Grab Drag indicator on hover */}
-                                <div className="drag-indicator">
-                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#bbc3c9" strokeWidth="3" strokeLinecap="round">
-                                    <circle cx="8" cy="5" r="1" />
-                                    <circle cx="16" cy="5" r="1" />
-                                    <circle cx="8" cy="12" r="1" />
-                                    <circle cx="16" cy="12" r="1" />
-                                    <circle cx="8" cy="19" r="1" />
-                                    <circle cx="16" cy="19" r="1" />
-                                  </svg>
-                                </div>
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: "6px",
-                                  }}
-                                >
-                                  {showLabel && (
-                                    <label
-                                      style={{
-                                        fontSize: labelFontSize,
-                                        fontWeight: "500",
-                                        color: labelColor,
-                                        display: "block",
-                                      }}
-                                    >
-                                      {field.label}{" "}
-                                      {showAsterisk && (
-                                        <span
-                                          style={{
-                                            color: "#d82c0d",
-                                            fontWeight: "bold",
-                                          }}
-                                        >
-                                          *
-                                        </span>
-                                      )}
-                                    </label>
-                                  )}
+                              {pageFields.map((field) => {
+                                const isNaturallyFull = [
+                                  "file",
+                                  "select",
+                                  "dropdown",
+                                  "textarea",
+                                  "heading",
+                                  "paragraph",
+                                  "divider",
+                                  "button",
+                                  "repeater",
+                                  "matrix",
+                                  "html",
+                                  "image-options",
+                                  "signature",
+                                  "product",
+                                  "feedback",
+                                  "hidden",
+                                ].includes(field.type);
+                                let gridSpan = "span 6";
+                                if (previewMode !== "mobile") {
+                                  if (field.columnWidth === "33%") {
+                                    gridSpan = "span 2";
+                                  } else if (field.columnWidth === "50%") {
+                                    gridSpan = "span 3";
+                                  } else if (field.columnWidth === "100%") {
+                                    gridSpan = "span 6";
+                                  } else {
+                                    gridSpan = isNaturallyFull ? "span 6" : "span 3";
+                                  }
+                                }
 
-                                  {field.hideLabel &&
-                                    field.showRequiredNoteIfHideLabel &&
-                                    field.required && (
-                                      <div
-                                        style={{
-                                          fontSize: "11px",
-                                          color: "#d82c0d",
-                                          fontWeight: "500",
-                                        }}
-                                      >
-                                        * Required
-                                      </div>
-                                    )}
+                                const showLabel =
+                                  !field.hideLabel &&
+                                  field.type !== "heading" &&
+                                  field.type !== "paragraph" &&
+                                  field.type !== "divider" &&
+                                  field.type !== "button" &&
+                                  field.type !== "hidden";
+                                const showAsterisk =
+                                  field.required &&
+                                  (showLabel || field.showRequiredNoteIfHideLabel);
 
-                                  {field.type === "heading" ? (
-                                    <h3
-                                      style={{
-                                        fontSize: "18px",
-                                        fontWeight: "600",
-                                        margin: "8px 0 2px 0",
-                                        color: "#202223",
-                                      }}
-                                    >
-                                      {field.label}
-                                    </h3>
-                                  ) : field.type === "paragraph" ? (
-                                    <p
-                                      style={{
-                                        fontSize: "13px",
-                                        color: "#6d7175",
-                                        margin: "2px 0 6px 0",
-                                        lineHeight: "1.4",
-                                      }}
-                                    >
-                                      {field.placeholder ||
-                                        "Paragraph text goes here..."}
-                                    </p>
-                                  ) : field.type === "divider" ? (
-                                    <hr
-                                      style={{
-                                        border: "none",
-                                        borderTop: "1px dashed #dcdfe3",
-                                        margin: "12px 0 4px 0",
-                                      }}
-                                    />
-                                  ) : field.type === "hidden" ? (
+                                return (
+                                  <div
+                                    key={field.id}
+                                    style={{
+                                      gridColumn: gridSpan,
+                                      opacity: draggedFieldId === field.id ? 0.4 : 1,
+                                      transition: "opacity 0.2s ease, transform 0.2s ease",
+                                    }}
+                                    draggable={true}
+                                    onDragStart={(e) => handleDragStart(e, field.id)}
+                                    onDragOver={(e) => handleDragOver(e, field.id)}
+                                    onDragEnd={handleDragEnd}
+                                  >
                                     <div
+                                      className="draggable-field-wrapper"
                                       style={{
-                                        padding: "8px 12px",
-                                        background: "#f6f6f7",
-                                        border: "1px dashed #bbc3c9",
-                                        borderRadius: "6px",
-                                        fontSize: "12px",
-                                        color: "#6d7175",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "6px",
+                                        padding: "8px",
+                                        border:
+                                          selectedFieldId === field.id
+                                            ? "1px solid #008060"
+                                            : "1px dashed #e1e3e5",
+                                        backgroundColor: selectedFieldId === field.id ? "rgba(0, 128, 96, 0.02)" : "#ffffff",
+                                        borderRadius: "8px",
+                                        cursor: "grab",
+                                        position: "relative",
                                       }}
+                                      onClick={() => setSelectedFieldId(field.id)}
                                     >
-                                      <span>👁</span> Hidden field — not visible
-                                      to users
-                                    </div>
-                                  ) : field.type === "rating" ? (
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: "8px",
-                                        padding: "8px 0",
-                                      }}
-                                    >
+                                      {/* Grab Drag indicator on hover */}
+                                      <div className="drag-indicator">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#bbc3c9" strokeWidth="3" strokeLinecap="round">
+                                          <circle cx="8" cy="5" r="1" />
+                                          <circle cx="16" cy="5" r="1" />
+                                          <circle cx="8" cy="12" r="1" />
+                                          <circle cx="16" cy="12" r="1" />
+                                          <circle cx="8" cy="19" r="1" />
+                                          <circle cx="16" cy="19" r="1" />
+                                        </svg>
+                                      </div>
                                       <div
                                         style={{
                                           display: "flex",
-                                          gap: "14px",
-                                          alignItems: "center",
+                                          flexDirection: "column",
+                                          gap: "6px",
                                         }}
                                       >
-                                        {[1, 2, 3, 4, 5].map((num) => {
-                                          const currentRating = previewRatings[field.id] || 0;
-                                          const isFilled = num <= currentRating;
-                                          const iconType = field.ratingIcon || "star";
-                                          return (
-                                            <div
-                                              key={num}
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                setPreviewRatings((prev) => ({
-                                                  ...prev,
-                                                  [field.id]: currentRating === num ? 0 : num,
-                                                }));
-                                              }}
-                                              style={{
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                alignItems: "center",
-                                                gap: "6px",
-                                              }}
-                                            >
-                                              {iconType === "heart" ? (
-                                                <HeartIcon filled={isFilled} size={36} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
-                                              ) : iconType === "smile" ? (
-                                                <SmileIcon filled={isFilled} size={36} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
-                                              ) : iconType === "thumb" ? (
-                                                <ThumbIcon filled={isFilled} size={36} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
-                                              ) : (
-                                                <StarIcon filled={isFilled} size={38} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
-                                              )}
-                                              {field.showNumberUnderIcon && (
-                                                <span
-                                                  style={{
-                                                    fontSize: "12px",
-                                                    color: "#6d7175",
-                                                    fontWeight: "550",
-                                                    marginTop: "2px",
-                                                  }}
-                                                >
-                                                  {num}
-                                                </span>
-                                              )}
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  ) : field.type === "feedback" ? (
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: "8px",
-                                        padding: "8px 0",
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          gap: "18px",
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        {[
-                                          { emoji: "😠", label: "Very Bad" },
-                                          { emoji: "🙁", label: "Bad" },
-                                          { emoji: "😐", label: "Neutral" },
-                                          { emoji: "🙂", label: "Good" },
-                                          { emoji: "😄", label: "Excellent" },
-                                        ].map((item, idx) => {
-                                          const val = idx + 1;
-                                          const currentRating = previewRatings[field.id] || 0;
-                                          const isActive = val === currentRating;
-                                          return (
-                                            <div
-                                              key={val}
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                setPreviewRatings((prev) => ({
-                                                  ...prev,
-                                                  [field.id]: currentRating === val ? 0 : val,
-                                                }));
-                                              }}
-                                              style={{
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                alignItems: "center",
-                                                gap: "6px",
-                                                cursor: "pointer",
-                                                transform: isActive ? "scale(1.2)" : "scale(1)",
-                                                filter: isActive ? "grayscale(0%)" : "grayscale(100%)",
-                                                opacity: isActive ? 1 : 0.4,
-                                                transition: "all 0.2s ease",
-                                              }}
-                                            >
-                                              <span style={{ fontSize: "32px", lineHeight: "1" }}>{item.emoji}</span>
-                                              {field.showNumberUnderIcon && (
-                                                <span
-                                                  style={{
-                                                    fontSize: "11px",
-                                                    color: "#6d7175",
-                                                    fontWeight: "550",
-                                                    marginTop: "2px",
-                                                  }}
-                                                >
-                                                  {val}
-                                                </span>
-                                              )}
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  ) : field.type === "button" ? (
-                                    <button
-                                      style={{
-                                        backgroundColor: primaryColor,
-                                        color: btnTextColor,
-                                        border: "none",
-                                        padding: "10px 16px",
-                                        borderRadius: borderRadius,
-                                        width: "100%",
-                                        fontWeight: "500",
-                                        fontSize: "14px",
-                                        cursor: "pointer",
-                                      }}
-                                    >
-                                      {field.label}
-                                    </button>
-                                  ) : field.type === "switch" ? (
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "10px",
-                                        padding: "6px 0",
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          width: "40px",
-                                          height: "22px",
-                                          background: "#bbc3c9",
-                                          borderRadius: "11px",
-                                          position: "relative",
-                                          cursor: "pointer",
-                                        }}
-                                      >
-                                        <div
-                                          style={{
-                                            width: "18px",
-                                            height: "18px",
-                                            background: "#fff",
-                                            borderRadius: "50%",
-                                            position: "absolute",
-                                            top: "2px",
-                                            left: "2px",
-                                            boxShadow:
-                                              "0 1px 3px rgba(0,0,0,0.2)",
-                                          }}
-                                        />
-                                      </div>
-                                      <span
-                                        style={{
-                                          fontSize: "13px",
-                                          color: "#6d7175",
-                                        }}
-                                      >
-                                        Off
-                                      </span>
-                                    </div>
-                                  ) : field.type === "range" ? (
-                                    <div style={{ padding: "8px 0" }}>
-                                      <input
-                                        type="range"
-                                        min="0"
-                                        max="100"
-                                        defaultValue="50"
-                                        style={{
-                                          width: "100%",
-                                          accentColor: primaryColor,
-                                        }}
-                                      />
-                                      <div
-                                        style={{
-                                          display: "flex",
-                                          justifyContent: "space-between",
-                                          fontSize: "11px",
-                                          color: "#6d7175",
-                                        }}
-                                      >
-                                        <span>0</span>
-                                        <span>100</span>
-                                      </div>
-                                    </div>
-                                  ) : field.type === "color" ||
-                                    field.type === "color-swatch" ? (
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "10px",
-                                        padding: "4px 0",
-                                      }}
-                                    >
-                                      <input
-                                        type="color"
-                                        defaultValue={primaryColor}
-                                        style={{
-                                          width: "38px",
-                                          height: "38px",
-                                          border: "1px solid #dcdfe3",
-                                          borderRadius: "6px",
-                                          padding: "2px",
-                                          cursor: "pointer",
-                                        }}
-                                      />
-                                      <span
-                                        style={{
-                                          fontSize: "13px",
-                                          color: "#6d7175",
-                                        }}
-                                      >
-                                        {field.type === "color-swatch"
-                                          ? "Pick a color swatch"
-                                          : "Pick a color"}
-                                      </span>
-                                    </div>
-                                  ) : field.type === "signature" ? (
-                                    <div
-                                      style={{
-                                        height: "80px",
-                                        border: "1px dashed #bbc3c9",
-                                        borderRadius: "6px",
-                                        background: "#fafafa",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        fontSize: "12px",
-                                        color: "#6d7175",
-                                      }}
-                                    >
-                                      ✍ Sign here
-                                    </div>
-                                  ) : field.type === "product" ? (
-                                    <div
-                                      style={{
-                                        border: "1px solid #dcdfe3",
-                                        borderRadius: "6px",
-                                        padding: "10px 12px",
-                                        background: "#f6f6f7",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "10px",
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          width: "36px",
-                                          height: "36px",
-                                          background: "#e1e3e5",
-                                          borderRadius: "4px",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                        }}
-                                      >
-                                        📦
-                                      </div>
-                                      <span
-                                        style={{
-                                          fontSize: "13px",
-                                          color: "#6d7175",
-                                        }}
-                                      >
-                                        Select a product...
-                                      </span>
-                                    </div>
-                                  ) : field.type === "quantity" ? (
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "8px",
-                                      }}
-                                    >
-                                      <button
-                                        style={{
-                                          width: "32px",
-                                          height: "32px",
-                                          border: "1px solid #dcdfe3",
-                                          borderRadius: "6px",
-                                          background: "#fff",
-                                          fontSize: "16px",
-                                          cursor: "pointer",
-                                        }}
-                                      >
-                                        −
-                                      </button>
-                                      <input
-                                        type="number"
-                                        defaultValue="1"
-                                        min="1"
-                                        style={{
-                                          width: "60px",
-                                          height: "32px",
-                                          textAlign: "center",
-                                          border: "1px solid #dcdfe3",
-                                          borderRadius: "6px",
-                                          fontSize: "14px",
-                                        }}
-                                      />
-                                      <button
-                                        style={{
-                                          width: "32px",
-                                          height: "32px",
-                                          border: "1px solid #dcdfe3",
-                                          borderRadius: "6px",
-                                          background: "#fff",
-                                          fontSize: "16px",
-                                          cursor: "pointer",
-                                        }}
-                                      >
-                                        +
-                                      </button>
-                                    </div>
-                                  ) : field.type === "repeater" ? (
-                                    <div
-                                      style={{
-                                        border: "1px dashed #bbc3c9",
-                                        borderRadius: "6px",
-                                        padding: "12px",
-                                        background: "#fafafa",
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          fontSize: "12px",
-                                          color: "#6d7175",
-                                          marginBottom: "8px",
-                                        }}
-                                      >
-                                        ↻ Repeater group
-                                      </div>
-                                      <div
-                                        style={{
-                                          height: "30px",
-                                          background: "#e1e3e5",
-                                          borderRadius: "4px",
-                                        }}
-                                      />
-                                      <button
-                                        style={{
-                                          marginTop: "8px",
-                                          fontSize: "12px",
-                                          color: primaryColor,
-                                          background: "none",
-                                          border: `1px solid ${primaryColor}`,
-                                          borderRadius: "4px",
-                                          padding: "4px 8px",
-                                          cursor: "pointer",
-                                        }}
-                                      >
-                                        + Add item
-                                      </button>
-                                    </div>
-                                  ) : field.type === "matrix" ? (
-                                    <div style={{ overflowX: "auto" }}>
-                                      <table
-                                        style={{
-                                          width: "100%",
-                                          borderCollapse: "collapse",
-                                          fontSize: "12px",
-                                        }}
-                                      >
-                                        <thead>
-                                          <tr>
-                                            <td style={{ padding: "4px" }}></td>
-                                            {["Col 1", "Col 2"].map((c, i) => (
-                                              <th
-                                                key={i}
+                                        {showLabel && (
+                                          <label
+                                            style={{
+                                              fontSize: labelFontSize,
+                                              fontWeight: "500",
+                                              color: labelColor,
+                                              display: "block",
+                                            }}
+                                          >
+                                            {field.label}{" "}
+                                            {showAsterisk && (
+                                              <span
                                                 style={{
-                                                  padding: "4px 8px",
-                                                  color: "#6d7175",
-                                                  fontWeight: "500",
+                                                  color: "#d82c0d",
+                                                  fontWeight: "bold",
                                                 }}
                                               >
-                                                {c}
-                                              </th>
-                                            ))}
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          {(
-                                            field.options || ["Row 1", "Row 2"]
-                                          ).map((row, i) => (
-                                            <tr key={i}>
-                                              <td
-                                                style={{
-                                                  padding: "4px 8px",
-                                                  color: "#202223",
-                                                }}
-                                              >
-                                                {row}
-                                              </td>
-                                              {["Col 1", "Col 2"].map(
-                                                (_, j) => (
-                                                  <td
-                                                    key={j}
-                                                    style={{
-                                                      padding: "4px 8px",
-                                                      textAlign: "center",
-                                                    }}
-                                                  >
-                                                    <input
-                                                      type="radio"
-                                                      name={`matrix_${field.id}_${i}`}
-                                                    />
-                                                  </td>
-                                                ),
-                                              )}
-                                            </tr>
-                                          ))}
-                                        </tbody>
-                                      </table>
-                                    </div>
-                                  ) : field.type === "html" ? (
-                                    <div
-                                      style={{
-                                        border: "1px solid #dcdfe3",
-                                        borderRadius: "6px",
-                                        padding: "10px 12px",
-                                        background: "#f6f6f7",
-                                        fontSize: "12px",
-                                        fontFamily: "monospace",
-                                        color: "#202223",
-                                      }}
-                                    >
-                                      {field.placeholder ||
-                                        "<p>Custom HTML</p>"}
-                                    </div>
-                                  ) : field.type === "image-options" ? (
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        gap: "8px",
-                                        flexWrap: "wrap",
-                                      }}
-                                    >
-                                      {(
-                                        field.options || [
-                                          "Option 1",
-                                          "Option 2",
-                                        ]
-                                      ).map((opt, i) => (
-                                        <div
-                                          key={i}
-                                          style={{
-                                            border: "1px solid #dcdfe3",
-                                            borderRadius: "6px",
-                                            padding: "8px 12px",
-                                            background: "#f6f6f7",
-                                            fontSize: "12px",
-                                            cursor: "pointer",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "6px",
-                                          }}
-                                        >
+                                                *
+                                              </span>
+                                            )}
+                                          </label>
+                                        )}
+
+                                        {field.hideLabel &&
+                                          field.showRequiredNoteIfHideLabel &&
+                                          field.required && (
+                                            <div
+                                              style={{
+                                                fontSize: "11px",
+                                                color: "#d82c0d",
+                                                fontWeight: "500",
+                                              }}
+                                            >
+                                              * Required
+                                            </div>
+                                          )}
+
+                                        {field.type === "heading" ? (
+                                          <h3
+                                            style={{
+                                              fontSize: "18px",
+                                              fontWeight: "600",
+                                              margin: "8px 0 2px 0",
+                                              color: "#202223",
+                                            }}
+                                          >
+                                            {field.label}
+                                          </h3>
+                                        ) : field.type === "paragraph" ? (
+                                          <p
+                                            style={{
+                                              fontSize: "13px",
+                                              color: "#6d7175",
+                                              margin: "2px 0 6px 0",
+                                              lineHeight: "1.4",
+                                            }}
+                                          >
+                                            {field.placeholder ||
+                                              "Paragraph text goes here..."}
+                                          </p>
+                                        ) : field.type === "divider" ? (
+                                          <hr
+                                            style={{
+                                              border: "none",
+                                              borderTop: "1px dashed #dcdfe3",
+                                              margin: "12px 0 4px 0",
+                                            }}
+                                          />
+                                        ) : field.type === "hidden" ? (
                                           <div
                                             style={{
-                                              width: "28px",
-                                              height: "28px",
-                                              background: "#e1e3e5",
-                                              borderRadius: "4px",
+                                              padding: "8px 12px",
+                                              background: "#f6f6f7",
+                                              border: "1px dashed #bbc3c9",
+                                              borderRadius: "6px",
+                                              fontSize: "12px",
+                                              color: "#6d7175",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "6px",
                                             }}
-                                          />
-                                          {opt}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : field.type === "checkboxes" || field.type === "radio" ? (
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: "8px",
-                                        padding: "4px 0",
-                                      }}
-                                    >
-                                      {(
-                                        field.options || [
-                                          "Option 1",
-                                          "Option 2",
-                                        ]
-                                      ).map((opt, i) => (
-                                        <label
-                                          key={i}
-                                          style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "8px",
-                                            fontSize: labelFontSize,
-                                            color: labelColor,
-                                            cursor: "pointer",
-                                          }}
-                                        >
-                                          <input
-                                            type={
-                                              field.type === "checkboxes"
-                                                ? "checkbox"
-                                                : "radio"
-                                            }
-                                            name={field.id}
-                                            disabled={true}
+                                          >
+                                            <span>👁</span> Hidden field — not visible
+                                            to users
+                                          </div>
+                                        ) : field.type === "rating" ? (
+                                          <div
                                             style={{
-                                              accentColor: primaryColor,
+                                              display: "flex",
+                                              flexDirection: "column",
+                                              gap: "8px",
+                                              padding: "8px 0",
                                             }}
-                                          />
-                                          {opt}
-                                        </label>
-                                      ))}
-                                    </div>
-                                  ) : field.type === "consent" ? (
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "8px",
-                                        padding: "4px 0",
-                                      }}
-                                    >
-                                      <label
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: "8px",
-                                          fontSize: labelFontSize,
-                                          color: labelColor,
-                                          cursor: "pointer",
-                                        }}
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          name={field.id}
-                                          disabled={true}
-                                          style={{
-                                            accentColor: primaryColor,
-                                          }}
-                                        />
-                                        <span>{field.placeholder || "I agree to the terms and conditions"}</span>
-                                      </label>
-                                    </div>
-                                  ) : field.type === "textarea" ? (
-                                    <textarea
-                                      className="field-preview-input"
-                                      placeholder={field.placeholder}
-                                      readOnly={true}
-                                      defaultValue={field.defaultValue || ""}
-                                      minLength={
-                                        field.limitCharacters && field.minCharacters ? field.minCharacters : undefined
-                                      }
-                                      maxLength={
-                                        field.limitCharacters && field.maxCharacters ? field.maxCharacters : undefined
-                                      }
-                                      rows={3}
-                                    />
-                                  ) : field.type === "select" ||
-                                    field.type === "dropdown" ? (
-                                    <select
-                                      className="field-preview-select"
-                                      disabled={true}
-                                      style={{
-                                        width: "100%",
-                                        height: "38px",
-                                        border: "1px solid #dcdfe3",
-                                        background: "#f6f6f7",
-                                        borderRadius: "8px",
-                                        padding: "0 12px",
-                                        cursor: "grab",
-                                      }}
-                                    >
-                                      <option>
-                                        {field.placeholder ||
-                                          "Select option..."}
-                                      </option>
-                                      {field.options?.map((opt, i) => (
-                                        <option key={i}>{opt}</option>
-                                      ))}
-                                    </select>
-                                  ) : field.type === "file" ? (
-                                    <div className="file-upload-preview-box">
-                                      <svg
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                      >
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
-                                      </svg>
-                                      <span>Click or drag file to upload</span>
-                                    </div>
-                                  ) : (
-                                    <div className="input-with-flag-container">
-                                      {(field.type === "tel" ||
-                                        field.type === "phone") && (
-                                          <div className="tel-flag-container">
-                                            <select
-                                              className="tel-flag-select"
-                                              value={field.defaultCountry || "IN"}
-                                              onChange={(e) => {
-                                                const newCountryCode = e.target.value;
-                                                // Update field in form builder state
-                                                setFields(
-                                                  fields.map((f) => {
-                                                    if (f.id === field.id) {
-                                                      return { ...f, defaultCountry: newCountryCode };
-                                                    }
-                                                    return f;
-                                                  })
-                                                );
-                                                handleFieldInput();
+                                          >
+                                            <div
+                                              style={{
+                                                display: "flex",
+                                                gap: "14px",
+                                                alignItems: "center",
                                               }}
                                             >
-                                              {countriesList.map((c) => (
-                                                <option key={c.code} value={c.code}>
-                                                  {c.name} ({c.dial})
-                                                </option>
-                                              ))}
-                                            </select>
-                                            <div className="tel-flag-display">
-                                              {(() => {
-                                                const currentCountry = countriesList.find(
-                                                  (c) => c.code === (field.defaultCountry || "IN")
-                                                ) || countriesList[0];
+                                              {[1, 2, 3, 4, 5].map((num) => {
+                                                const currentRating = previewRatings[field.id] || 0;
+                                                const isFilled = num <= currentRating;
+                                                const iconType = field.ratingIcon || "star";
                                                 return (
-                                                  <>
-                                                    <span style={{ fontWeight: "600", fontSize: "13px", color: "#202223" }}>{currentCountry.code}</span>
-                                                    <span className="tel-code">{currentCountry.dial}</span>
-                                                  </>
+                                                  <div
+                                                    key={num}
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      setPreviewRatings((prev) => ({
+                                                        ...prev,
+                                                        [field.id]: currentRating === num ? 0 : num,
+                                                      }));
+                                                    }}
+                                                    style={{
+                                                      display: "flex",
+                                                      flexDirection: "column",
+                                                      alignItems: "center",
+                                                      gap: "6px",
+                                                    }}
+                                                  >
+                                                    {iconType === "heart" ? (
+                                                      <HeartIcon filled={isFilled} size={36} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
+                                                    ) : iconType === "smile" ? (
+                                                      <SmileIcon filled={isFilled} size={36} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
+                                                    ) : iconType === "thumb" ? (
+                                                      <ThumbIcon filled={isFilled} size={36} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
+                                                    ) : (
+                                                      <StarIcon filled={isFilled} size={38} color={primaryColor} strokeColor={labelColor || "#2e4a3f"} />
+                                                    )}
+                                                    {field.showNumberUnderIcon && (
+                                                      <span
+                                                        style={{
+                                                          fontSize: "12px",
+                                                          color: "#6d7175",
+                                                          fontWeight: "550",
+                                                          marginTop: "2px",
+                                                        }}
+                                                      >
+                                                        {num}
+                                                      </span>
+                                                    )}
+                                                  </div>
                                                 );
-                                              })()}
-                                              <span className="tel-dropdown-arrow">▼</span>
+                                              })}
                                             </div>
                                           </div>
+                                        ) : field.type === "feedback" ? (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              flexDirection: "column",
+                                              gap: "8px",
+                                              padding: "8px 0",
+                                            }}
+                                          >
+                                            <div
+                                              style={{
+                                                display: "flex",
+                                                gap: "18px",
+                                                alignItems: "center",
+                                              }}
+                                            >
+                                              {[
+                                                { emoji: "😠", label: "Very Bad" },
+                                                { emoji: "🙁", label: "Bad" },
+                                                { emoji: "😐", label: "Neutral" },
+                                                { emoji: "🙂", label: "Good" },
+                                                { emoji: "😄", label: "Excellent" },
+                                              ].map((item, idx) => {
+                                                const val = idx + 1;
+                                                const currentRating = previewRatings[field.id] || 0;
+                                                const isActive = val === currentRating;
+                                                return (
+                                                  <div
+                                                    key={val}
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      setPreviewRatings((prev) => ({
+                                                        ...prev,
+                                                        [field.id]: currentRating === val ? 0 : val,
+                                                      }));
+                                                    }}
+                                                    style={{
+                                                      display: "flex",
+                                                      flexDirection: "column",
+                                                      alignItems: "center",
+                                                      gap: "6px",
+                                                      cursor: "pointer",
+                                                      transform: isActive ? "scale(1.2)" : "scale(1)",
+                                                      filter: isActive ? "grayscale(0%)" : "grayscale(100%)",
+                                                      opacity: isActive ? 1 : 0.4,
+                                                      transition: "all 0.2s ease",
+                                                    }}
+                                                  >
+                                                    <span style={{ fontSize: "32px", lineHeight: "1" }}>{item.emoji}</span>
+                                                    {field.showNumberUnderIcon && (
+                                                      <span
+                                                        style={{
+                                                          fontSize: "11px",
+                                                          color: "#6d7175",
+                                                          fontWeight: "550",
+                                                          marginTop: "2px",
+                                                        }}
+                                                      >
+                                                        {val}
+                                                      </span>
+                                                    )}
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        ) : field.type === "button" ? (
+                                          <button
+                                            style={{
+                                              backgroundColor: primaryColor,
+                                              color: btnTextColor,
+                                              border: "none",
+                                              padding: "10px 16px",
+                                              borderRadius: borderRadius,
+                                              width: "100%",
+                                              fontWeight: "500",
+                                              fontSize: "14px",
+                                              cursor: "pointer",
+                                            }}
+                                          >
+                                            {field.label}
+                                          </button>
+                                        ) : field.type === "switch" ? (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "10px",
+                                              padding: "6px 0",
+                                            }}
+                                          >
+                                            <div
+                                              style={{
+                                                width: "40px",
+                                                height: "22px",
+                                                background: "#bbc3c9",
+                                                borderRadius: "11px",
+                                                position: "relative",
+                                                cursor: "pointer",
+                                              }}
+                                            >
+                                              <div
+                                                style={{
+                                                  width: "18px",
+                                                  height: "18px",
+                                                  background: "#fff",
+                                                  borderRadius: "50%",
+                                                  position: "absolute",
+                                                  top: "2px",
+                                                  left: "2px",
+                                                  boxShadow:
+                                                    "0 1px 3px rgba(0,0,0,0.2)",
+                                                }}
+                                              />
+                                            </div>
+                                            <span
+                                              style={{
+                                                fontSize: "13px",
+                                                color: "#6d7175",
+                                              }}
+                                            >
+                                              Off
+                                            </span>
+                                          </div>
+                                        ) : field.type === "range" ? (
+                                          <div style={{ padding: "8px 0" }}>
+                                            <input
+                                              type="range"
+                                              min="0"
+                                              max="100"
+                                              defaultValue="50"
+                                              style={{
+                                                width: "100%",
+                                                accentColor: primaryColor,
+                                              }}
+                                            />
+                                            <div
+                                              style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                fontSize: "11px",
+                                                color: "#6d7175",
+                                              }}
+                                            >
+                                              <span>0</span>
+                                              <span>100</span>
+                                            </div>
+                                          </div>
+                                        ) : field.type === "color" ||
+                                          field.type === "color-swatch" ? (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "10px",
+                                              padding: "4px 0",
+                                            }}
+                                          >
+                                            <input
+                                              type="color"
+                                              defaultValue={primaryColor}
+                                              style={{
+                                                width: "38px",
+                                                height: "38px",
+                                                border: "1px solid #dcdfe3",
+                                                borderRadius: "6px",
+                                                padding: "2px",
+                                                cursor: "pointer",
+                                              }}
+                                            />
+                                            <span
+                                              style={{
+                                                fontSize: "13px",
+                                                color: "#6d7175",
+                                              }}
+                                            >
+                                              {field.type === "color-swatch"
+                                                ? "Pick a color swatch"
+                                                : "Pick a color"}
+                                            </span>
+                                          </div>
+                                        ) : field.type === "signature" ? (
+                                          <div
+                                            style={{
+                                              height: "80px",
+                                              border: "1px dashed #bbc3c9",
+                                              borderRadius: "6px",
+                                              background: "#fafafa",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              justifyContent: "center",
+                                              fontSize: "12px",
+                                              color: "#6d7175",
+                                            }}
+                                          >
+                                            ✍ Sign here
+                                          </div>
+                                        ) : field.type === "product" ? (
+                                          <div
+                                            style={{
+                                              border: "1px solid #dcdfe3",
+                                              borderRadius: "6px",
+                                              padding: "10px 12px",
+                                              background: "#f6f6f7",
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "10px",
+                                            }}
+                                          >
+                                            <div
+                                              style={{
+                                                width: "36px",
+                                                height: "36px",
+                                                background: "#e1e3e5",
+                                                borderRadius: "4px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                              }}
+                                            >
+                                              📦
+                                            </div>
+                                            <span
+                                              style={{
+                                                fontSize: "13px",
+                                                color: "#6d7175",
+                                              }}
+                                            >
+                                              Select a product...
+                                            </span>
+                                          </div>
+                                        ) : field.type === "quantity" ? (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "8px",
+                                            }}
+                                          >
+                                            <button
+                                              style={{
+                                                width: "32px",
+                                                height: "32px",
+                                                border: "1px solid #dcdfe3",
+                                                borderRadius: "6px",
+                                                background: "#fff",
+                                                fontSize: "16px",
+                                                cursor: "pointer",
+                                              }}
+                                            >
+                                              −
+                                            </button>
+                                            <input
+                                              type="number"
+                                              defaultValue="1"
+                                              min="1"
+                                              style={{
+                                                width: "60px",
+                                                height: "32px",
+                                                textAlign: "center",
+                                                border: "1px solid #dcdfe3",
+                                                borderRadius: "6px",
+                                                fontSize: "14px",
+                                              }}
+                                            />
+                                            <button
+                                              style={{
+                                                width: "32px",
+                                                height: "32px",
+                                                border: "1px solid #dcdfe3",
+                                                borderRadius: "6px",
+                                                background: "#fff",
+                                                fontSize: "16px",
+                                                cursor: "pointer",
+                                              }}
+                                            >
+                                              +
+                                            </button>
+                                          </div>
+                                        ) : field.type === "repeater" ? (
+                                          <div
+                                            style={{
+                                              border: "1px dashed #bbc3c9",
+                                              borderRadius: "6px",
+                                              padding: "12px",
+                                              background: "#fafafa",
+                                            }}
+                                          >
+                                            <div
+                                              style={{
+                                                fontSize: "12px",
+                                                color: "#6d7175",
+                                                marginBottom: "8px",
+                                              }}
+                                            >
+                                              ↻ Repeater group
+                                            </div>
+                                            <div
+                                              style={{
+                                                height: "30px",
+                                                background: "#e1e3e5",
+                                                borderRadius: "4px",
+                                              }}
+                                            />
+                                            <button
+                                              style={{
+                                                marginTop: "8px",
+                                                fontSize: "12px",
+                                                color: primaryColor,
+                                                background: "none",
+                                                border: `1px solid ${primaryColor}`,
+                                                borderRadius: "4px",
+                                                padding: "4px 8px",
+                                                cursor: "pointer",
+                                              }}
+                                            >
+                                              + Add item
+                                            </button>
+                                          </div>
+                                        ) : field.type === "matrix" ? (
+                                          <div style={{ overflowX: "auto" }}>
+                                            <table
+                                              style={{
+                                                width: "100%",
+                                                borderCollapse: "collapse",
+                                                fontSize: "12px",
+                                              }}
+                                            >
+                                              <thead>
+                                                <tr>
+                                                  <td style={{ padding: "4px" }}></td>
+                                                  {["Col 1", "Col 2"].map((c, i) => (
+                                                    <th
+                                                      key={i}
+                                                      style={{
+                                                        padding: "4px 8px",
+                                                        color: "#6d7175",
+                                                        fontWeight: "500",
+                                                      }}
+                                                    >
+                                                      {c}
+                                                    </th>
+                                                  ))}
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                {(
+                                                  field.options || ["Row 1", "Row 2"]
+                                                ).map((row, i) => (
+                                                  <tr key={i}>
+                                                    <td
+                                                      style={{
+                                                        padding: "4px 8px",
+                                                        color: "#202223",
+                                                      }}
+                                                    >
+                                                      {row}
+                                                    </td>
+                                                    {["Col 1", "Col 2"].map(
+                                                      (_, j) => (
+                                                        <td
+                                                          key={j}
+                                                          style={{
+                                                            padding: "4px 8px",
+                                                            textAlign: "center",
+                                                          }}
+                                                        >
+                                                          <input
+                                                            type="radio"
+                                                            name={`matrix_${field.id}_${i}`}
+                                                          />
+                                                        </td>
+                                                      ),
+                                                    )}
+                                                  </tr>
+                                                ))}
+                                              </tbody>
+                                            </table>
+                                          </div>
+                                        ) : field.type === "html" ? (
+                                          <div
+                                            style={{
+                                              fontSize: "14px",
+                                              color: "#202223",
+                                              minHeight: "20px",
+                                            }}
+                                            dangerouslySetInnerHTML={{
+                                              __html: field.defaultValue || field.placeholder || "<p style='color:#888; font-style:italic;'>Custom HTML Content</p>"
+                                            }}
+                                          />
+                                        ) : field.type === "image-options" ? (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              gap: "8px",
+                                              flexWrap: "wrap",
+                                            }}
+                                          >
+                                            {(
+                                              field.options || [
+                                                "Option 1",
+                                                "Option 2",
+                                              ]
+                                            ).map((opt, i) => (
+                                              <div
+                                                key={i}
+                                                style={{
+                                                  border: "1px solid #dcdfe3",
+                                                  borderRadius: "6px",
+                                                  padding: "8px 12px",
+                                                  background: "#f6f6f7",
+                                                  fontSize: "12px",
+                                                  cursor: "pointer",
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                  gap: "6px",
+                                                }}
+                                              >
+                                                <div
+                                                  style={{
+                                                    width: "28px",
+                                                    height: "28px",
+                                                    background: "#e1e3e5",
+                                                    borderRadius: "4px",
+                                                  }}
+                                                />
+                                                {opt}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        ) : field.type === "checkboxes" || field.type === "radio" ? (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              flexDirection: "column",
+                                              gap: "8px",
+                                              padding: "4px 0",
+                                            }}
+                                          >
+                                            {(
+                                              field.options || [
+                                                "Option 1",
+                                                "Option 2",
+                                              ]
+                                            ).map((opt, i) => (
+                                              <label
+                                                key={i}
+                                                style={{
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                  gap: "8px",
+                                                  fontSize: labelFontSize,
+                                                  color: labelColor,
+                                                  cursor: "pointer",
+                                                }}
+                                              >
+                                                <input
+                                                  type={
+                                                    field.type === "checkboxes"
+                                                      ? "checkbox"
+                                                      : "radio"
+                                                  }
+                                                  name={field.id}
+                                                  disabled={true}
+                                                  style={{
+                                                    accentColor: primaryColor,
+                                                  }}
+                                                />
+                                                {opt}
+                                              </label>
+                                            ))}
+                                          </div>
+                                        ) : field.type === "consent" ? (
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: "8px",
+                                              padding: "4px 0",
+                                            }}
+                                          >
+                                            <label
+                                              style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "8px",
+                                                fontSize: labelFontSize,
+                                                color: labelColor,
+                                                cursor: "pointer",
+                                              }}
+                                            >
+                                              <input
+                                                type="checkbox"
+                                                name={field.id}
+                                                disabled={true}
+                                                style={{
+                                                  accentColor: primaryColor,
+                                                }}
+                                              />
+                                              <span>{field.placeholder || "I agree to the terms and conditions"}</span>
+                                            </label>
+                                          </div>
+                                        ) : field.type === "textarea" ? (
+                                          <textarea
+                                            className="field-preview-input"
+                                            placeholder={field.placeholder}
+                                            readOnly={true}
+                                            defaultValue={field.defaultValue || ""}
+                                            minLength={
+                                              field.limitCharacters && field.minCharacters ? field.minCharacters : undefined
+                                            }
+                                            maxLength={
+                                              field.limitCharacters && field.maxCharacters ? field.maxCharacters : undefined
+                                            }
+                                            rows={3}
+                                          />
+                                        ) : field.type === "select" ||
+                                          field.type === "dropdown" ? (
+                                          <select
+                                            className="field-preview-select"
+                                            disabled={true}
+                                            style={{
+                                              width: "100%",
+                                              height: "38px",
+                                              border: "1px solid #dcdfe3",
+                                              background: "#f6f6f7",
+                                              borderRadius: "8px",
+                                              padding: "0 12px",
+                                              cursor: "grab",
+                                            }}
+                                          >
+                                            <option>
+                                              {field.placeholder ||
+                                                "Select option..."}
+                                            </option>
+                                            {field.options?.map((opt, i) => (
+                                              <option key={i}>{opt}</option>
+                                            ))}
+                                          </select>
+                                        ) : field.type === "file" ? (
+                                          <div className="file-upload-preview-box">
+                                            <svg
+                                              width="20"
+                                              height="20"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              strokeWidth="2"
+                                            >
+                                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                                            </svg>
+                                            <span>Click or drag file to upload</span>
+                                          </div>
+                                        ) : (
+                                          <div className="input-with-flag-container">
+                                            {(field.type === "tel" ||
+                                              field.type === "phone") && (
+                                                <div className="tel-flag-container">
+                                                  <select
+                                                    className="tel-flag-select"
+                                                    value={field.defaultCountry || "IN"}
+                                                    onChange={(e) => {
+                                                      const newCountryCode = e.target.value;
+                                                      // Update field in form builder state
+                                                      setFields(
+                                                        fields.map((f) => {
+                                                          if (f.id === field.id) {
+                                                            return { ...f, defaultCountry: newCountryCode };
+                                                          }
+                                                          return f;
+                                                        })
+                                                      );
+                                                      handleFieldInput();
+                                                    }}
+                                                  >
+                                                    {countriesList.map((c) => (
+                                                      <option key={c.code} value={c.code}>
+                                                        {c.name} ({c.dial})
+                                                      </option>
+                                                    ))}
+                                                  </select>
+                                                  <div className="tel-flag-display">
+                                                    {(() => {
+                                                      const currentCountry = countriesList.find(
+                                                        (c) => c.code === (field.defaultCountry || "IN")
+                                                      ) || countriesList[0];
+                                                      return (
+                                                        <>
+                                                          <span style={{ fontWeight: "600", fontSize: "13px", color: "#202223" }}>{currentCountry.code}</span>
+                                                          <span className="tel-code">{currentCountry.dial}</span>
+                                                        </>
+                                                      );
+                                                    })()}
+                                                    <span className="tel-dropdown-arrow">▼</span>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            <input
+                                              type={
+                                                field.type === "phone"
+                                                  ? "tel"
+                                                  : field.type === "name"
+                                                    ? "text"
+                                                    : field.type
+                                              }
+                                              className="field-preview-input"
+                                              placeholder={(() => {
+                                                if (field.type === "tel" || field.type === "phone") {
+                                                  const basePlaceholder = field.placeholder || "12345 67890";
+                                                  return basePlaceholder.replace(/^\+\d+\s*/, "");
+                                                }
+                                                return field.placeholder;
+                                              })()}
+                                              readOnly={true}
+                                              defaultValue={field.defaultValue || ""}
+                                              minLength={
+                                                field.limitCharacters && field.minCharacters ? field.minCharacters : undefined
+                                              }
+                                              maxLength={
+                                                field.limitCharacters && field.maxCharacters ? field.maxCharacters : undefined
+                                              }
+                                            />
+                                          </div>
                                         )}
-                                      <input
-                                        type={
-                                          field.type === "phone"
-                                            ? "tel"
-                                            : field.type === "name"
-                                              ? "text"
-                                              : field.type
-                                        }
-                                        className="field-preview-input"
-                                        placeholder={(() => {
-                                          if (field.type === "tel" || field.type === "phone") {
-                                            const basePlaceholder = field.placeholder || "12345 67890";
-                                            return basePlaceholder.replace(/^\+\d+\s*/, "");
-                                          }
-                                          return field.placeholder;
-                                        })()}
-                                        readOnly={true}
-                                        defaultValue={field.defaultValue || ""}
-                                        minLength={
-                                          field.limitCharacters && field.minCharacters ? field.minCharacters : undefined
-                                        }
-                                        maxLength={
-                                          field.limitCharacters && field.maxCharacters ? field.maxCharacters : undefined
-                                        }
-                                      />
-                                    </div>
-                                  )}
 
-                                  {field.description && (
-                                    <div
-                                      style={{
-                                        fontSize: "11px",
-                                        color: "#6d7175",
-                                        marginTop: "2px",
-                                      }}
-                                    >
-                                      {field.description}
+                                        {field.description && (
+                                          <div
+                                            style={{
+                                              fontSize: "11px",
+                                              color: "#6d7175",
+                                              marginTop: "2px",
+                                            }}
+                                          >
+                                            {field.description}
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
-                                  )}
-                                </div>
-                              </div>
+                                  </div>
+                                );
+                              })}
                             </div>
-                          );
-                        })}
+                          </div>
+                        );
+                      })}
                     </div>
 
                     {/* Wrapper for preview footer */}
@@ -4424,51 +4655,14 @@ export default function FormBuilder({ config, existingForm = null }) {
                       )}
 
                       {/* Navigation Buttons for Multi-page / Single-page Form */}
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: footerFullWidth ? "column" : "row",
-                          justifyContent: footerFullWidth ? "stretch" : (activePreviewPage > 1 ? "space-between" : "center"),
-                          gap: "12px",
-                          alignItems: footerFullWidth ? "stretch" : "center",
-                        }}
-                      >
-                        {activePreviewPage > 1 && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActivePreviewPage(activePreviewPage - 1);
-                              setSelectedFieldId("form-footer");
-                            }}
-                            style={{
-                              backgroundColor: "transparent",
-                              border: `1px solid #dcdfe3`,
-                              borderRadius: borderRadius,
-                              color: "#202223",
-                              padding: "10px 20px",
-                              cursor: "pointer",
-                              fontWeight: "500",
-                              transition: "background 0.2s",
-                              width: footerFullWidth ? "100%" : "auto",
-                            }}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.background = "#f6f6f7")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.background = "transparent")
-                            }
-                          >
-                            {footerPreviousText || "Back"}
-                          </button>
-                        )}
-
+                      {multiPageLayout === "vertical" ? (
                         <div
                           style={{
                             display: "flex",
                             flexDirection: footerFullWidth ? "column" : "row",
-                            gap: "8px",
-                            width: footerFullWidth ? "100%" : "auto",
-                            justifyContent: footerFullWidth ? "stretch" : (activePreviewPage > 1 ? "flex-end" : "center"),
+                            justifyContent: footerFullWidth ? "stretch" : "center",
+                            gap: "12px",
+                            alignItems: footerFullWidth ? "stretch" : "center",
                           }}
                         >
                           {footerShowReset && (
@@ -4500,53 +4694,152 @@ export default function FormBuilder({ config, existingForm = null }) {
                               Reset
                             </button>
                           )}
-
-                          {activePreviewPage < pages.length ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFormSubmitted(true);
+                              triggerToast("Mock form submitted in preview mode!");
+                              setSelectedFieldId("form-footer");
+                            }}
+                            style={{
+                              backgroundColor: primaryColor,
+                              borderRadius: borderRadius,
+                              color: btnTextColor,
+                              border: "none",
+                              padding: "10px 20px",
+                              cursor: "pointer",
+                              fontWeight: "500",
+                              width: footerFullWidth ? "100%" : "auto",
+                            }}
+                          >
+                            {footerSubmitText || "Submit"}
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: footerFullWidth ? "column" : "row",
+                            justifyContent: footerFullWidth ? "stretch" : (activePreviewPage > 1 ? "space-between" : "center"),
+                            gap: "12px",
+                            alignItems: footerFullWidth ? "stretch" : "center",
+                          }}
+                        >
+                          {activePreviewPage > 1 && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setActivePreviewPage(activePreviewPage + 1);
+                                setActivePreviewPage(activePreviewPage - 1);
                                 setSelectedFieldId("form-footer");
                               }}
                               style={{
-                                backgroundColor: primaryColor,
+                                backgroundColor: "transparent",
+                                border: `1px solid #dcdfe3`,
                                 borderRadius: borderRadius,
-                                color: btnTextColor,
-                                border: "none",
+                                color: "#202223",
                                 padding: "10px 20px",
                                 cursor: "pointer",
                                 fontWeight: "500",
+                                transition: "background 0.2s",
                                 width: footerFullWidth ? "100%" : "auto",
                               }}
+                              onMouseEnter={(e) =>
+                                (e.currentTarget.style.background = "#f6f6f7")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.background = "transparent")
+                              }
                             >
-                              {footerNextText || "Next"}
-                            </button>
-                          ) : (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setFormSubmitted(true);
-                                triggerToast(
-                                  "Mock form submitted in preview mode!",
-                                );
-                                setSelectedFieldId("form-footer");
-                              }}
-                              style={{
-                                backgroundColor: primaryColor,
-                                borderRadius: borderRadius,
-                                color: btnTextColor,
-                                border: "none",
-                                padding: "10px 20px",
-                                cursor: "pointer",
-                                fontWeight: "500",
-                                width: footerFullWidth ? "100%" : "auto",
-                              }}
-                            >
-                              {footerSubmitText || "Submit"}
+                              {footerPreviousText || "Back"}
                             </button>
                           )}
+
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: footerFullWidth ? "column" : "row",
+                              gap: "8px",
+                              width: footerFullWidth ? "100%" : "auto",
+                              justifyContent: footerFullWidth ? (activePreviewPage > 1 ? "flex-end" : "center") : "center",
+                            }}
+                          >
+                            {footerShowReset && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  triggerToast("Form input reset");
+                                  setSelectedFieldId("form-footer");
+                                }}
+                                style={{
+                                  backgroundColor: "#f6f6f7",
+                                  border: `1px solid #dcdfe3`,
+                                  borderRadius: borderRadius,
+                                  color: "#374151",
+                                  padding: "10px 20px",
+                                  cursor: "pointer",
+                                  fontWeight: "500",
+                                  transition: "background 0.2s",
+                                  width: footerFullWidth ? "100%" : "auto",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.background = "#eef0f1")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.background = "#f6f6f7")
+                                }
+                              >
+                                Reset
+                              </button>
+                            )}
+
+                            {activePreviewPage < pages.length ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActivePreviewPage(activePreviewPage + 1);
+                                  setSelectedFieldId("form-footer");
+                                }}
+                                style={{
+                                  backgroundColor: primaryColor,
+                                  borderRadius: borderRadius,
+                                  color: btnTextColor,
+                                  border: "none",
+                                  padding: "10px 20px",
+                                  cursor: "pointer",
+                                  fontWeight: "500",
+                                  width: footerFullWidth ? "100%" : "auto",
+                                }}
+                              >
+                                {footerNextText || "Next"}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setFormSubmitted(true);
+                                  triggerToast(
+                                    "Mock form submitted in preview mode!",
+                                  );
+                                  setSelectedFieldId("form-footer");
+                                }}
+                                style={{
+                                  backgroundColor: primaryColor,
+                                  borderRadius: borderRadius,
+                                  color: btnTextColor,
+                                  border: "none",
+                                  padding: "10px 20px",
+                                  cursor: "pointer",
+                                  fontWeight: "500",
+                                  width: footerFullWidth ? "100%" : "auto",
+                                }}
+                              >
+                                {footerSubmitText || "Submit"}
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </>
                 )}
@@ -4589,6 +4882,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                 Add element
               </h2>
               <button
+                type="button"
                 onClick={() => setShowAddMenu(false)}
                 style={{
                   background: "none",
@@ -4636,6 +4930,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                         return (
                           <button
                             key={item.id}
+                            type="button"
                             className={`modal-item-btn${isInUse ? " modal-item-btn--disabled" : ""}`}
                             disabled={isInUse}
                             title={
@@ -4643,10 +4938,12 @@ export default function FormBuilder({ config, existingForm = null }) {
                                 ? `"${item.label}" is already added to the form`
                                 : `Add ${item.label}`
                             }
-                            onClick={() =>
-                              !isInUse &&
-                              addField(item.id, item.label, item.singletonType)
-                            }
+                            onClick={() => {
+                              if (!isInUse) {
+                                addField(item.id, item.label, item.singletonType);
+                                setShowAddMenu(false);
+                              }
+                            }}
                           >
                             <span className="modal-item-icon">{item.icon}</span>
                             <span className="modal-item-label">{item.label}</span>

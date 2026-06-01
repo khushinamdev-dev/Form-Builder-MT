@@ -190,6 +190,18 @@ function renderField(f, d) {
     input = `<input style="width:60px;height:36px;border:1px solid ${d.inputBorderColor};border-radius:${br};padding:2px;background:${d.inputBgColor};cursor:pointer;" type="color" name="${name}">`;
   } else if (f.type === "switch") {
     input = `<label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" name="${name}" style="accent-color:${d.primaryColor};width:18px;height:18px;"> <span style="font-size:${d.labelFontSize};color:${d.inputTextColor};">${f.placeholder || "Toggle"}</span></label>`;
+  } else if (f.type === "html") {
+    const content = f.defaultValue || f.placeholder || "";
+    const finalLabel = f.hideLabel ? "" : labelHtml;
+    let htmlSpan = "span 6";
+    if (f.columnWidth === "33%") {
+      htmlSpan = "span 2";
+    } else if (f.columnWidth === "50%") {
+      htmlSpan = "span 3";
+    } else if (f.columnWidth === "100%") {
+      htmlSpan = "span 6";
+    }
+    return `<div class="fb-field fb-html-field" style="grid-column:${htmlSpan};margin-bottom:8px;">${finalLabel}${content}</div>`;
   } else {
     // Default: text input
     input = `<input style="${inputStyle}" type="text" name="${name}" placeholder="${ph}" ${req}>`;

@@ -36,6 +36,7 @@ export async function saveFormAction({ request }) {
     const footerSubmitText = fd.get("footerSubmitText") || "Submit";
     const footerShowReset = fd.get("footerShowReset") === "true";
     const footerFullWidth = fd.get("footerFullWidth") === "true";
+    const multiPageLayout = fd.get("multiPageLayout") || "buttons";
 
     let parsedFields = [];
     try {
@@ -52,6 +53,10 @@ export async function saveFormAction({ request }) {
     let parsedEmailTemplates = null;
     try {
         parsedEmailTemplates = JSON.parse(fd.get("emailTemplates") || "null");
+    } catch (_) {}
+    let parsedTranslations = {};
+    try {
+        parsedTranslations = JSON.parse(fd.get("translations") || "{}");
     } catch (_) {}
 
     const bioContent = JSON.stringify({
@@ -86,8 +91,10 @@ export async function saveFormAction({ request }) {
         footerSubmitText,
         footerShowReset,
         footerFullWidth,
+        multiPageLayout,
         rules: parsedRules,
         emailTemplates: parsedEmailTemplates,
+        translations: parsedTranslations,
         fields: parsedFields.map((f) => ({
             ...f,
             required: !!f.required,

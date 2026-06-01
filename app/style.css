@@ -542,9 +542,12 @@
   transform: translateY(-1px);
 }
 
-.b2b-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.b2b-btn:disabled,
+.b2b-btn[disabled],
+.b2b-btn.disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
 }
 
 .b2b-error {
@@ -648,6 +651,10 @@
   border-radius: 6px;
   cursor: pointer;
   background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  color: #202223;
   transition: background 0.2s, color 0.2s;
   position: relative;
 }
@@ -728,6 +735,143 @@
 .add-tree-item:hover {
   background: rgba(0, 92, 187, 0.05);
 }
+
+/* ==================== ADD ELEMENT MODAL ==================== */
+.add-field-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-field-modal {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 92vw;
+  max-width: 860px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-grid {
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.modal-category {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-category-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6d7175;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f1f1f1;
+  display: flex;
+  align-items: center;
+}
+
+.modal-category-title--business {
+  color: #005ccc;
+  border-bottom-color: #d4e4ff;
+}
+
+.modal-category--business {
+  background: #f5f8ff;
+  border: 1px solid #d4e4ff;
+  border-radius: 8px;
+  padding: 14px 14px 10px;
+}
+
+/* Regular fields: 3-column grid */
+.modal-category > div:not(.biz-items-grid) {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+/* Business fields: 4-column sub-grid */
+.biz-items-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.modal-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e1e3e5;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 13px;
+  color: #202223;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+
+.modal-item-btn:hover {
+  border-color: #008060;
+  background: #f0fdf8;
+  box-shadow: 0 0 0 2px rgba(0, 128, 96, 0.1);
+}
+
+.modal-item-btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.modal-item-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.modal-item-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #202223;
+  flex: 1;
+}
+
+.modal-item-in-use-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6d7175;
+  background: #f1f2f4;
+  border-radius: 4px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+  .modal-category > div:not(.biz-items-grid) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .biz-items-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 
 .add-field-popup {
   position: absolute;

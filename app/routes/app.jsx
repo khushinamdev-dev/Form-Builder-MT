@@ -16,11 +16,35 @@ export const loader = async ({ request }) => {
   // Ensure metaobject definitions exist on app load
   await ensureProfileMetaobjectDefinition(admin);
   await ensureSubmissionMetaobjectDefinition(admin);
-  return { apiKey };
+
+  // Fetch store languages/locales dynamically
+  let shopLocales = [];
+  try {
+    const localesResponse = await admin.graphql(
+      `#graphql
+      query {
+        shopLocales {
+          locale
+          name
+          primary
+          published
+        }
+      }`
+    );
+    const localesJson = await localesResponse.json();
+    shopLocales = localesJson.data?.shopLocales || [];
+  } catch (err) {
+    console.error("Error fetching shop locales:", err);
+  }
+  if (!shopLocales.length) {
+    shopLocales = [{ locale: "en", name: "English", primary: true, published: true }];
+  }
+
+  return { apiKey, shopLocales };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData();
+  const { apiKey, shopLocales } = useLoaderData();
 
   return (
     <AppProvider embedded apiKey={apiKey}>
@@ -31,7 +55,7 @@ export default function App() {
         <s-link href="/app/customers">Customers</s-link>
         <s-link href="/app/pricing">Pricing</s-link>
       </s-app-nav>
-      <Outlet />
+      <Outlet context={{ shopLocales }} />
     </AppProvider>
   );
 }

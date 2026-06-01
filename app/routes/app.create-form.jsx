@@ -25,16 +25,17 @@ let CreateForm = () => {
                 <s-grid gridTemplateColumns="repeat(12, 1fr)" gap="base" className="cards-grid">
                     {/* Scratch Card */}
                     <s-grid-item gridColumn="span 6">
-                        <s-section className="choice-card" onClick={() => navigate("/app/scratch")}>
-                            <s-box className="visual-container">
-                                <s-box className="scratch-glow"></s-box>
-                                <s-box className="scratch-visual">
-                                    <s-text className="scratch-plus-icon">+</s-text>
-                                </s-box>
-                            </s-box>
-                            <s-stack className="choice-text-container" gap="small">
-                                <s-heading level="3" className="choice-title">Start From Scratch</s-heading>
-                                <s-text className="choice-desc">Create fully custom forms, layouts, or workflows completely from the ground up.</s-text>
+                        <s-section onClick={() => navigate("/app/scratch")}>
+                            <s-stack inlineSize="280px" justifyContent="center" alignItems="center" >
+                                <s-image
+                                    src="/Start_from_scratch.png"
+                                    alt="Start From Scratch"
+                                    objectFit="contain"
+                                ></s-image>
+                            </s-stack>
+                            <s-stack gap="small">
+                                <s-heading level="3" >Start From Scratch</s-heading>
+                                <s-text >Create fully custom forms, layouts, or workflows completely from the ground up.</s-text>
                             </s-stack>
                             <s-button className="action-btn" variant="primary">
                                 Create Form
@@ -44,32 +45,18 @@ let CreateForm = () => {
 
                     {/* Template Card */}
                     <s-grid-item gridColumn="span 6">
-                        <s-section className="choice-card" onClick={() => navigate("/app/template")}>
-                            <s-box className="visual-container">
-                                <s-box className="template-visual">
-                                    {/* Layer 1 */}
-                                    <s-box className="template-layer template-layer-1">
-                                        <s-box className="mock-line"></s-box>
-                                        <s-box className="mock-line short"></s-box>
-                                        <s-box className="mock-line accent"></s-box>
-                                    </s-box>
-                                    {/* Layer 2 */}
-                                    <s-box className="template-layer template-layer-2">
-                                        <s-box className="mock-line accent"></s-box>
-                                        <s-box className="mock-line"></s-box>
-                                        <s-box className="mock-line short"></s-box>
-                                    </s-box>
-                                    {/* Layer 3 */}
-                                    <s-box className="template-layer template-layer-3">
-                                        <s-box className="mock-line"></s-box>
-                                        <s-box className="mock-line short"></s-box>
-                                        <s-box className="mock-line accent"></s-box>
-                                    </s-box>
-                                </s-box>
-                            </s-box>
-                            <s-stack className="choice-text-container" gap="small">
-                                <s-heading level="3" className="choice-title">Create From Template</s-heading>
-                                <s-text className="choice-desc">Jumpstart your workflow with a professional, pre-built template layout.</s-text>
+                        <s-section onClick={() => navigate("/app/template")}>
+                            <s-stack inlineSize="280px" justifyContent="center" alignItems="center" >
+
+                                <s-image
+                                    src="/Create_From_template.png"
+                                    alt="Create From Template"
+                                    objectFit="contain"
+                                ></s-image>
+                            </s-stack>
+                            <s-stack gap="small">
+                                <s-heading level="3" >Create From Template</s-heading>
+                                <s-text >Jumpstart your workflow with a professional, pre-built template layout.</s-text>
                             </s-stack>
                             <s-button className="action-btn" variant="primary">
                                 Select Template

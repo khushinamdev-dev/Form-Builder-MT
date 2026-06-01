@@ -92,9 +92,11 @@ export async function loadFormForEdit(admin, formId) {
         footerSubmitText: bio.footerSubmitText || "Submit",
         footerShowReset: !!bio.footerShowReset,
         footerFullWidth: !!bio.footerFullWidth,
+        multiPageLayout: bio.multiPageLayout || "buttons",
         fields: savedFields,
         pages: savedPages,
         rules: bio.rules || [],
         emailTemplates: bio.emailTemplates || null,
+        translations: bio.translations || {},
     };
 }

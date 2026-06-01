@@ -23,7 +23,7 @@ export default function Index() {
 
           <s-box inlineSize="100px" padding="base" textAlign="center">
             <s-image
-              src="support.svg"
+              src="Any-questions.png"
               alt="Empty state"
 
               objectFit="cover"
@@ -111,7 +111,7 @@ export default function Index() {
 
           <s-box inlineSize="100px" padding="base" textAlign="center">
             <s-image
-              src="create.svg"
+              src="Create-forms.png"
               alt="Empty state"
 
               objectFit="cover"

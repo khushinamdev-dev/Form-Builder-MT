@@ -351,6 +351,9 @@ const Submissions = () => {
 
   const selectedSubmission = submissions.find((s) => s.id === selectedSubmissionId);
 
+  const isAccepting = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "accept";
+  const isRejecting = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "reject";
+
   const handleAccept = (sub) => {
     fetcher.submit(
       {
@@ -430,6 +433,44 @@ const Submissions = () => {
       }
     };
   }, [selectedSubmissionId, showImportModal]);
+
+  useEffect(() => {
+    const modal = document.getElementById("details-modal");
+    if (modal) {
+      if (selectedSubmissionId) {
+        if (typeof modal.show === "function") {
+          modal.show();
+        } else {
+          modal.setAttribute("open", "");
+        }
+      } else {
+        if (typeof modal.hide === "function") {
+          modal.hide();
+        } else {
+          modal.removeAttribute("open");
+        }
+      }
+    }
+  }, [selectedSubmissionId]);
+
+  useEffect(() => {
+    const modal = document.getElementById("import-modal");
+    if (modal) {
+      if (showImportModal) {
+        if (typeof modal.show === "function") {
+          modal.show();
+        } else {
+          modal.setAttribute("open", "");
+        }
+      } else {
+        if (typeof modal.hide === "function") {
+          modal.hide();
+        } else {
+          modal.removeAttribute("open");
+        }
+      }
+    }
+  }, [showImportModal]);
 
   const handleExport = () => {
     if (filteredSubmissions.length === 0) {
@@ -728,9 +769,17 @@ const Submissions = () => {
                       onClick={() => setSelectedSubmissionId(sub.id)}
                     >
                       <s-table-cell>
-                        <s-clickable type="button">
+                        <s-button
+                          variant="tertiary"
+                          commandFor="details-modal"
+                          command="--show"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedSubmissionId(sub.id);
+                          }}
+                        >
                           <s-text fontWeight="semibold">{sub.customerName}</s-text>
-                        </s-clickable>
+                        </s-button>
                       </s-table-cell>
                       <s-table-cell>
                         <s-text>{sub.formName}</s-text>
@@ -768,82 +817,112 @@ const Submissions = () => {
         {/* Submission details Popup Modal */}
         <s-modal id="details-modal" heading="Submission Details" open={selectedSubmissionId ? true : undefined}>
           {selectedSubmission && (
-            <s-stack gap="base">
+            <s-stack gap="large">
               {/* Form & Submitter Summary Cards */}
-              <s-box className="summary-grid">
-                <s-box className="summary-card">
-                  <s-text className="card-label">Form Name</s-text>
-                  <s-text className="card-value">{selectedSubmission.formName}</s-text>
-                </s-box>
-                <s-box className="summary-card">
-                  <s-text className="card-label">Category</s-text>
-                  <s-box>
-                    <s-text className={`category-badge ${selectedSubmission.category}`}>
-                      {selectedSubmission.category === "b2b" ? "B2B" : "Custom"}
-                    </s-text>
+              <s-grid gridTemplateColumns="repeat(2, 1fr)" gap="base">
+                <s-grid-item gridColumn="span 1">
+                  <s-box className="summary-card" style={{ height: "100%" }}>
+                    <s-stack gap="extra-tight">
+                      <s-text className="card-label" tone="subdued" style={{ fontSize: "11px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", color: "#6b7280" }}>Form Name</s-text>
+                      <s-text className="card-value" fontWeight="bold">{selectedSubmission.formName}</s-text>
+                    </s-stack>
                   </s-box>
-                </s-box>
-                <s-box className="summary-card">
-                  <s-text className="card-label">Submitted At</s-text>
-                  <s-text className="card-value">
-                    {new Date(selectedSubmission.submittedAt).toLocaleString("en-US", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
-                  </s-text>
-                </s-box>
-                <s-box className="summary-card">
-                  <s-text className="card-label">Status</s-text>
-                  <s-box>
-                    <s-text className="status-badge">{selectedSubmission.status}</s-text>
+                </s-grid-item>
+                <s-grid-item gridColumn="span 1">
+                  <s-box className="summary-card" style={{ height: "100%" }}>
+                    <s-stack gap="extra-tight">
+                      <s-text className="card-label" tone="subdued" style={{ fontSize: "11px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", color: "#6b7280" }}>Category</s-text>
+                      <s-box>
+                        <s-text className={`category-badge ${selectedSubmission.category}`}>
+                          {selectedSubmission.category === "b2b" ? "B2B" : "Custom"}
+                        </s-text>
+                      </s-box>
+                    </s-stack>
                   </s-box>
-                </s-box>
-              </s-box>
+                </s-grid-item>
+                <s-grid-item gridColumn="span 1">
+                  <s-box className="summary-card" style={{ height: "100%" }}>
+                    <s-stack gap="extra-tight">
+                      <s-text className="card-label" tone="subdued" style={{ fontSize: "11px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", color: "#6b7280" }}>Submitted At</s-text>
+                      <s-text className="card-value" fontWeight="semibold">
+                        {new Date(selectedSubmission.submittedAt).toLocaleString("en-US", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </s-text>
+                    </s-stack>
+                  </s-box>
+                </s-grid-item>
+                <s-grid-item gridColumn="span 1">
+                  <s-box className="summary-card" style={{ height: "100%" }}>
+                    <s-stack gap="extra-tight">
+                      <s-text className="card-label" tone="subdued" style={{ fontSize: "11px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", color: "#6b7280" }}>Status</s-text>
+                      <s-box>
+                        <s-text className="status-badge">{selectedSubmission.status}</s-text>
+                      </s-box>
+                    </s-stack>
+                  </s-box>
+                </s-grid-item>
+              </s-grid>
 
               <s-divider />
 
-              <s-text fontWeight="bold" tone="subdued">Submitted Values</s-text>
-              <s-box className="payload-list">
-                {Object.entries(selectedSubmission.payload).map(
-                  ([key, value]) => (
-                    <s-box key={key} className="payload-item">
-                      <s-text className="payload-key">{key}</s-text>
-                      <s-text className="payload-value">
-                        {typeof value === "object" ? JSON.stringify(value, null, 2) : String(value)}
-                      </s-text>
-                    </s-box>
-                  ),
-                )}
-              </s-box>
+              <s-stack gap="base">
+                <s-text fontWeight="bold" tone="subdued">Submitted Values</s-text>
+                <s-grid gridTemplateColumns="repeat(2, 1fr)" gap="base">
+                  {Object.entries(selectedSubmission.payload).map(
+                    ([key, value]) => (
+                      <s-grid-item key={key} gridColumn="span 1">
+                        <s-box className="payload-item" style={{ height: "100%", padding: "12px", border: "1px solid #f3f4f6", borderRadius: "8px", background: "#fff" }}>
+                          <s-stack gap="extra-tight">
+                            <s-text className="payload-key" tone="subdued" style={{ fontSize: "12px", fontWeight: "600", color: "#4b5563" }}>{key}</s-text>
+                            <s-text className="payload-value" fontWeight="semibold" style={{ fontSize: "14px", color: "#111827", lineHeight: "1.5" }}>
+                              {typeof value === "object" ? JSON.stringify(value, null, 2) : String(value)}
+                            </s-text>
+                          </s-stack>
+                        </s-box>
+                      </s-grid-item>
+                    ),
+                  )}
+                </s-grid>
+              </s-stack>
 
               {selectedSubmission.category === "b2b" && selectedSubmission.status === "Pending" && (
                 <>
                   <s-divider />
-                  <s-box className="b2b-action-panel">
-                  <s-box className="b2b-action-title-box">
-                      <s-text fontWeight="bold" tone="warning">B2B Onboarding Approval</s-text>
-                    </s-box>
-                    <s-stack direction="inline" gap="base">
-                      <s-button
-                        className="b2b-btn accept"
-                        disabled={fetcher.state !== "idle"}
-                        onClick={() => handleAccept(selectedSubmission)}
-                      >
-                        {fetcher.state !== "idle" && fetcher.formData?.get("intent") === "accept" ? "Accepting..." : "Accept & Create Company"}
-                      </s-button>
-                      <s-button
-                        className="b2b-btn reject"
-                        disabled={fetcher.state !== "idle"}
-                        onClick={() => handleReject(selectedSubmission)}
-                      >
-                        {fetcher.state !== "idle" && fetcher.formData?.get("intent") === "reject" ? "Rejecting..." : "Reject Application"}
-                      </s-button>
-                    </s-stack>
-                    {fetcher.data?.error && (
-                      <s-box className="b2b-error">
-                        ⚠ {fetcher.data.error}
+                  <s-box className="b2b-action-panel" style={{ padding: "16px", border: "1px dashed #e5e7eb", borderRadius: "12px", background: "#fbfbfb" }}>
+                    <s-stack gap="base">
+                      <s-box className="b2b-action-title-box">
+                        <s-text fontWeight="bold" tone="warning">B2B Onboarding Approval</s-text>
                       </s-box>
-                    )}
+                      <s-stack direction="inline" gap="base">
+                        <s-button
+                          className={` ${isAccepting ? "disabled" : ""}`}
+                          disabled={isAccepting}
+                          onClick={() => {
+                            if (fetcher.state !== "idle") return;
+                            handleAccept(selectedSubmission);
+                          }}
+                        >
+                          {isAccepting ? "Accepting..." : "Accept & Create Company"}
+                        </s-button>
+                        <s-button
+                          className={` ${isRejecting ? "disabled" : ""}`}
+                          disabled={isRejecting}
+                          onClick={() => {
+                            if (fetcher.state !== "idle") return;
+                            handleReject(selectedSubmission);
+                          }}
+                        >
+                          {isRejecting ? "Rejecting..." : "Reject Application"}
+                        </s-button>
+                      </s-stack>
+                      {fetcher.data?.error && (
+                        <s-box className="b2b-error">
+                          ⚠ {fetcher.data.error}
+                        </s-box>
+                      )}
+                    </s-stack>
                   </s-box>
                 </>
               )}
