@@ -3,7 +3,7 @@
     class="form-builder-embed"
     data-form-builder
     data-form-id="{{ block.settings.form_id | escape }}"
-    data-proxy-url="/apps/form-builder/forms/{{ block.settings.form_id | escape }}"
+    data-proxy-url="/apps/form-builder/forms/{{ block.settings.form_id | escape }}?locale={{ request.locale.iso_code | downcase }}"
     {{ block.shopify_attributes }}
   >
     <p class="form-builder-embed__loading">Loading form…</p>

@@ -142,6 +142,7 @@ function buildFormPayload(metaobject) {
       footerSubmitText: config.footerSubmitText || "Submit",
       footerShowReset: config.footerShowReset || false,
       footerFullWidth: config.footerFullWidth || false,
+      translations: config.translations || {},
     },
   };
 }
@@ -379,6 +380,36 @@ export const loader = async ({ request, params }) => {
 
     if (result.error) {
       return jsonResponse({ error: result.error }, result.status);
+    }
+
+    // Apply translations on the server if a locale parameter is present
+    const url = new URL(request.url);
+    const requestLocale = (url.searchParams.get("locale") || "en").toLowerCase().split("-")[0];
+    const trans = result.data.translations?.[requestLocale];
+    if (trans) {
+      if (trans.formName) result.data.title = trans.formName;
+      if (trans.headerTitle) result.data.title = trans.headerTitle;
+      if (trans.description) result.data.description = trans.description;
+      if (trans.footerSubmitText) result.data.footerSubmitText = trans.footerSubmitText;
+
+      if (result.data.fields && trans.fields) {
+        result.data.fields = result.data.fields.map((field) => {
+          const fieldTrans = trans.fields[field.id];
+          if (fieldTrans) {
+            const translatedField = { ...field };
+            if (fieldTrans.label) translatedField.label = fieldTrans.label;
+            if (fieldTrans.placeholder) translatedField.placeholder = fieldTrans.placeholder;
+            if (fieldTrans.description) translatedField.description = fieldTrans.description;
+            if (fieldTrans.options && Array.isArray(fieldTrans.options) && field.options) {
+              translatedField.options = field.options.map((opt, optIdx) => {
+                return fieldTrans.options[optIdx] || opt;
+              });
+            }
+            return translatedField;
+          }
+          return field;
+        });
+      }
     }
 
     const acceptHeader = request.headers.get("Accept") || "";

@@ -617,8 +617,8 @@ export default function FormBuilder({ config, existingForm = null }) {
 
   const [translations, setTranslations] = useState(() => existingForm?.translations || {});
   const [selectedLanguage, setSelectedLanguage] = useState(() => {
-    const secondary = shopLocales.find(l => !l.primary);
-    return secondary ? secondary.locale : (shopLocales[0]?.locale || "en");
+    const primary = shopLocales.find(l => l.primary);
+    return primary ? primary.locale : (shopLocales[0]?.locale || "en");
   });
 
   const updateTranslation = (locale, key, value, fieldId = null) => {
@@ -800,6 +800,33 @@ export default function FormBuilder({ config, existingForm = null }) {
     setTimeout(() => {
       setToastMessage("");
     }, 3000);
+  };
+
+  // Helper to get translated values dynamically when previewing translations
+  const getPreviewValue = (key, originalValue, fieldId = null) => {
+    if (activeTab === "translation" && selectedLanguage) {
+      const trans = translations[selectedLanguage] || {};
+      if (fieldId) {
+        const fieldTrans = trans.fields?.[fieldId] || {};
+        return fieldTrans[key] || originalValue;
+      }
+      let val = trans[key];
+      if (key === "headerTitle" && !val) {
+        val = trans["formName"]; // Smart fallback to Form Name translation if Header Title is empty
+      }
+      return val || originalValue;
+    }
+    return originalValue;
+  };
+
+  const getPreviewOption = (opt, idx, fieldId) => {
+    if (activeTab === "translation" && selectedLanguage) {
+      const trans = translations[selectedLanguage] || {};
+      const fieldTrans = trans.fields?.[fieldId] || {};
+      const optTrans = fieldTrans.options || [];
+      return optTrans[idx] || opt;
+    }
+    return opt;
   };
 
   // Field Reordering Helpers
@@ -3122,32 +3149,26 @@ export default function FormBuilder({ config, existingForm = null }) {
                             rows={3}
                           />
 
-                          <s-grid gridTemplateColumns="repeat(3, 1fr)" gap="small" style={{ marginTop: "4px" }}>
-                            <s-grid-item>
-                              <s-text-field
-                                label="Back Button"
-                                value={translations[selectedLanguage]?.footerPreviousText || ""}
-                                placeholder={`Original: ${footerPreviousText}`}
-                                onChange={(e) => updateTranslation(selectedLanguage, "footerPreviousText", e.currentTarget.value)}
-                              />
-                            </s-grid-item>
-                            <s-grid-item>
-                              <s-text-field
-                                label="Next Button"
-                                value={translations[selectedLanguage]?.footerNextText || ""}
-                                placeholder={`Original: ${footerNextText}`}
-                                onChange={(e) => updateTranslation(selectedLanguage, "footerNextText", e.currentTarget.value)}
-                              />
-                            </s-grid-item>
-                            <s-grid-item>
-                              <s-text-field
-                                label="Submit Button"
-                                value={translations[selectedLanguage]?.footerSubmitText || ""}
-                                placeholder={`Original: ${footerSubmitText}`}
-                                onChange={(e) => updateTranslation(selectedLanguage, "footerSubmitText", e.currentTarget.value)}
-                              />
-                            </s-grid-item>
-                          </s-grid>
+                          <s-stack gap="small" style={{ marginTop: "4px" }}>
+                            <s-text-field
+                              label="Back Button"
+                              value={translations[selectedLanguage]?.footerPreviousText || ""}
+                              placeholder={`Original: ${footerPreviousText}`}
+                              onChange={(e) => updateTranslation(selectedLanguage, "footerPreviousText", e.currentTarget.value)}
+                            />
+                            <s-text-field
+                              label="Next Button"
+                              value={translations[selectedLanguage]?.footerNextText || ""}
+                              placeholder={`Original: ${footerNextText}`}
+                              onChange={(e) => updateTranslation(selectedLanguage, "footerNextText", e.currentTarget.value)}
+                            />
+                            <s-text-field
+                              label="Submit Button"
+                              value={translations[selectedLanguage]?.footerSubmitText || ""}
+                              placeholder={`Original: ${footerSubmitText}`}
+                              onChange={(e) => updateTranslation(selectedLanguage, "footerSubmitText", e.currentTarget.value)}
+                            />
+                          </s-stack>
                         </s-stack>
                       </s-box>
 
@@ -3179,15 +3200,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                                   <s-badge tone="subdued" style={{ textTransform: "uppercase" }}>{field.type}</s-badge>
                                 </s-stack>
 
-                                <s-grid gridTemplateColumns="repeat(2, 1fr)" gap="base" style={{ marginTop: "4px" }}>
-                                  <s-grid-item>
-                                    <s-text-field
-                                      label="Translated Label"
-                                      value={fieldTrans.label || ""}
-                                      placeholder={`Original: ${field.label}`}
-                                      onChange={(e) => updateTranslation(selectedLanguage, "label", e.currentTarget.value, field.id)}
-                                    />
-                                  </s-grid-item>
+                                <s-stack gap="small" style={{ marginTop: "4px" }}>
+                                  <s-text-field
+                                    label="Translated Label"
+                                    value={fieldTrans.label || ""}
+                                    placeholder={`Original: ${field.label}`}
+                                    onChange={(e) => updateTranslation(selectedLanguage, "label", e.currentTarget.value, field.id)}
+                                  />
 
                                   {field.type !== "file" &&
                                     field.type !== "divider" &&
@@ -3195,16 +3214,14 @@ export default function FormBuilder({ config, existingForm = null }) {
                                     field.type !== "feedback" &&
                                     field.type !== "signature" &&
                                     field.type !== "product" && (
-                                      <s-grid-item>
-                                        <s-text-field
-                                          label="Translated Placeholder"
-                                          value={fieldTrans.placeholder || ""}
-                                          placeholder={`Original: ${field.placeholder || ""}`}
-                                          onChange={(e) => updateTranslation(selectedLanguage, "placeholder", e.currentTarget.value, field.id)}
-                                        />
-                                      </s-grid-item>
+                                      <s-text-field
+                                        label="Translated Placeholder"
+                                        value={fieldTrans.placeholder || ""}
+                                        placeholder={`Original: ${field.placeholder || ""}`}
+                                        onChange={(e) => updateTranslation(selectedLanguage, "placeholder", e.currentTarget.value, field.id)}
+                                      />
                                     )}
-                                </s-grid>
+                                </s-stack>
 
                                 <s-text-field
                                   label="Translated Description"
@@ -3219,25 +3236,24 @@ export default function FormBuilder({ config, existingForm = null }) {
                                     <s-text style={{ fontSize: "11px", fontWeight: "700", color: "#6d7175", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                                       Options
                                     </s-text>
-                                    <s-grid gridTemplateColumns="repeat(2, 1fr)" gap="small">
+                                    <s-stack gap="small">
                                       {field.options.map((opt, optIdx) => {
                                         const optTrans = fieldTrans.options || [];
                                         const value = optTrans[optIdx] || "";
                                         return (
-                                          <s-grid-item key={optIdx}>
-                                            <s-text-field
-                                              label={`Option: "${opt}"`}
-                                              value={value}
-                                              onChange={(e) => {
-                                                const nextOpts = [...optTrans];
-                                                nextOpts[optIdx] = e.currentTarget.value;
-                                                updateTranslation(selectedLanguage, "options", nextOpts, field.id);
-                                              }}
-                                            />
-                                          </s-grid-item>
+                                          <s-text-field
+                                            key={optIdx}
+                                            label={`Option: "${opt}"`}
+                                            value={value}
+                                            onChange={(e) => {
+                                              const nextOpts = [...optTrans];
+                                              nextOpts[optIdx] = e.currentTarget.value;
+                                              updateTranslation(selectedLanguage, "options", nextOpts, field.id);
+                                            }}
+                                          />
                                         );
                                       })}
-                                    </s-grid>
+                                    </s-stack>
                                   </s-stack>
                                 )}
                               </s-stack>
@@ -3575,8 +3591,8 @@ export default function FormBuilder({ config, existingForm = null }) {
                       }}
                       title="Click to edit form title & description"
                     >
-                      <h1 className="preview-title">{formHeaderTitle}</h1>
-                      <p className="preview-description">{formDescription}</p>
+                      <h1 className="preview-title">{getPreviewValue("headerTitle", formHeaderTitle)}</h1>
+                      <p className="preview-description">{getPreviewValue("description", formDescription)}</p>
                     </div>
 
                     {/* Stepper Progress Bar for Multi-page Forms */}
@@ -3817,7 +3833,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                               display: "block",
                                             }}
                                           >
-                                            {field.label}{" "}
+                                            {getPreviewValue("label", field.label, field.id)}{" "}
                                             {showAsterisk && (
                                               <span
                                                 style={{
@@ -3830,6 +3846,18 @@ export default function FormBuilder({ config, existingForm = null }) {
                                             )}
                                           </label>
                                         )}
+
+                                        {false && getPreviewValue("description", field.description, field.id) && (
+                                           <div
+                                             style={{
+                                               fontSize: "11px",
+                                               color: "#6d7175",
+                                               marginTop: "2px",
+                                             }}
+                                           >
+                                             {getPreviewValue("description", field.description, field.id)}
+                                           </div>
+                                         )}
 
                                         {field.hideLabel &&
                                           field.showRequiredNoteIfHideLabel &&
@@ -3854,7 +3882,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                               color: "#202223",
                                             }}
                                           >
-                                            {field.label}
+                                            {getPreviewValue("label", field.label, field.id)}
                                           </h3>
                                         ) : field.type === "paragraph" ? (
                                           <p
@@ -3865,7 +3893,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                               lineHeight: "1.4",
                                             }}
                                           >
-                                            {field.placeholder ||
+                                            {getPreviewValue("placeholder", field.placeholder, field.id) ||
                                               "Paragraph text goes here..."}
                                           </p>
                                         ) : field.type === "divider" ? (
@@ -4036,7 +4064,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                               cursor: "pointer",
                                             }}
                                           >
-                                            {field.label}
+                                            {getPreviewValue("label", field.label, field.id)}
                                           </button>
                                         ) : field.type === "switch" ? (
                                           <div
@@ -4382,7 +4410,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                                     borderRadius: "4px",
                                                   }}
                                                 />
-                                                {opt}
+                                                {getPreviewOption(opt, i, field.id)}
                                               </div>
                                             ))}
                                           </div>
@@ -4424,7 +4452,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                                     accentColor: primaryColor,
                                                   }}
                                                 />
-                                                {opt}
+                                                {getPreviewOption(opt, i, field.id)}
                                               </label>
                                             ))}
                                           </div>
@@ -4461,7 +4489,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                         ) : field.type === "textarea" ? (
                                           <textarea
                                             className="field-preview-input"
-                                            placeholder={field.placeholder}
+                                            placeholder={getPreviewValue("placeholder", field.placeholder, field.id)}
                                             readOnly={true}
                                             defaultValue={field.defaultValue || ""}
                                             minLength={
@@ -4488,11 +4516,11 @@ export default function FormBuilder({ config, existingForm = null }) {
                                             }}
                                           >
                                             <option>
-                                              {field.placeholder ||
+                                              {getPreviewValue("placeholder", field.placeholder, field.id) ||
                                                 "Select option..."}
                                             </option>
                                             {field.options?.map((opt, i) => (
-                                              <option key={i}>{opt}</option>
+                                              <option key={i}>{getPreviewOption(opt, i, field.id)}</option>
                                             ))}
                                           </select>
                                         ) : field.type === "file" ? (
@@ -4581,7 +4609,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                           </div>
                                         )}
 
-                                        {field.description && (
+                                        {getPreviewValue("description", field.description, field.id) && (
                                           <div
                                             style={{
                                               fontSize: "11px",
@@ -4589,7 +4617,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                               marginTop: "2px",
                                             }}
                                           >
-                                            {field.description}
+                                            {getPreviewValue("description", field.description, field.id)}
                                           </div>
                                         )}
                                       </div>
@@ -4712,7 +4740,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                               width: footerFullWidth ? "100%" : "auto",
                             }}
                           >
-                            {footerSubmitText || "Submit"}
+                            {getPreviewValue("footerSubmitText", footerSubmitText) || "Submit"}
                           </button>
                         </div>
                       ) : (
@@ -4750,7 +4778,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                 (e.currentTarget.style.background = "transparent")
                               }
                             >
-                              {footerPreviousText || "Back"}
+                              {getPreviewValue("footerPreviousText", footerPreviousText) || "Back"}
                             </button>
                           )}
 
@@ -4811,7 +4839,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                   width: footerFullWidth ? "100%" : "auto",
                                 }}
                               >
-                                {footerNextText || "Next"}
+                                {getPreviewValue("footerNextText", footerNextText) || "Next"}
                               </button>
                             ) : (
                               <button
@@ -4834,7 +4862,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                                   width: footerFullWidth ? "100%" : "auto",
                                 }}
                               >
-                                {footerSubmitText || "Submit"}
+                                {getPreviewValue("footerSubmitText", footerSubmitText) || "Submit"}
                               </button>
                             )}
                           </div>

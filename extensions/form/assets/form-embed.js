@@ -723,6 +723,41 @@
             );
             return;
           }
+
+          // Apply translations client-side if a translation is available for the active storefront language
+          const storefrontLang = (window.Shopify?.locale || "").toLowerCase().split("-")[0] || 
+                                 document.documentElement.getAttribute("lang")?.split("-")[0]?.toLowerCase() || 
+                                 "en";
+
+          const translations = data.translations || {};
+          const trans = translations[storefrontLang];
+          if (trans) {
+            console.log("[Form Builder Embed] Translating form fields client-side to storefront language:", storefrontLang);
+            if (trans.formName) data.title = trans.formName;
+            if (trans.headerTitle) data.title = trans.headerTitle;
+            if (trans.description) data.description = trans.description;
+            if (trans.footerSubmitText) data.footerSubmitText = trans.footerSubmitText;
+
+            if (data.fields && trans.fields) {
+              data.fields = data.fields.map(function (field) {
+                const fieldTrans = trans.fields[field.id];
+                if (fieldTrans) {
+                  const translatedField = Object.assign({}, field);
+                  if (fieldTrans.label) translatedField.label = fieldTrans.label;
+                  if (fieldTrans.placeholder) translatedField.placeholder = fieldTrans.placeholder;
+                  if (fieldTrans.description) translatedField.description = fieldTrans.description;
+                  if (fieldTrans.options && Array.isArray(fieldTrans.options) && field.options) {
+                    translatedField.options = field.options.map(function (opt, optIdx) {
+                      return fieldTrans.options[optIdx] || opt;
+                    });
+                  }
+                  return translatedField;
+                }
+                return field;
+              });
+            }
+          }
+
           renderForm(container, data, proxyUrl);
         })
         .catch(function (err) {
