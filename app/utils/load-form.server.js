@@ -14,7 +14,7 @@ export async function loadFormForEdit(admin, formId) {
     `,
         {
             variables: {
-                handle: { type: "$app:profile", handle: formId },
+                handle: { type: "$app:forms_data", handle: formId },
             },
         }
     );
@@ -35,7 +35,7 @@ export async function loadFormForEdit(admin, formId) {
 
     let bio = {};
     try {
-        bio = JSON.parse(fieldMap.bio || "{}");
+        bio = JSON.parse(fieldMap.data || "{}");
     } catch (_) {}
 
     const savedFields = (bio.fields || []).map((f) => ({
@@ -57,7 +57,7 @@ export async function loadFormForEdit(admin, formId) {
                   title: `Page ${i + 1}`,
               }));
 
-    const formName = fieldMap.full_name || "Untitled Form";
+    const formName = bio.formName || bio.headerTitle || "Untitled Form";
 
     return {
         formId: metaobject.handle,
@@ -66,7 +66,7 @@ export async function loadFormForEdit(admin, formId) {
         headerTitle: bio.headerTitle || formName,
         description: bio.description || "",
         category: bio.category || null,
-        role: fieldMap.role || "",
+        role: fieldMap.form || "",
         primaryColor: bio.primaryColor || "#008060",
         borderRadius: bio.borderRadius || "8px",
         fontFamily: bio.fontFamily || "Inter, sans-serif",

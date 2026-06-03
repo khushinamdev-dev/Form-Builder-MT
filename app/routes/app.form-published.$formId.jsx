@@ -46,7 +46,7 @@ export const loader = async ({ request, params }) => {
             {
                 variables: isGid
                     ? { id: formId }
-                    : { handle: { type: "$app:profile", handle: formId } },
+                    : { handle: { type: "$app:forms_data", handle: formId } },
             }
         );
 
@@ -56,7 +56,7 @@ export const loader = async ({ request, params }) => {
             : json.data?.metaobjectByHandle || null;
 
         if (metaobject) {
-            const bioField = metaobject.fields.find(f => f.key === "bio");
+            const bioField = metaobject.fields.find(f => f.key === "data");
             if (bioField?.value) {
                 try {
                     const parsed = JSON.parse(bioField.value);
@@ -130,9 +130,7 @@ export default function FormPublished() {
                                     <s-button onClick={handleCopy} title="Copy ID" variant="primary">
                                         Copy
                                     </s-button>
-                                    <s-stack>
-                                        <s-text></s-text>
-                                    </s-stack>
+
                                 </s-stack>
 
                                 <s-text>

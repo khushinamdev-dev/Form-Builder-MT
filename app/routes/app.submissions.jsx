@@ -56,51 +56,11 @@ export const action = async ({ request }) => {
   const payloadStr = formData.get("payload") || "{}";
   const formId = formData.get("formId") || "";
 
-  if (intent !== "import" && !submissionId) {
+  if (!submissionId) {
     return Response.json({ error: "Submission ID is required" }, { status: 400 });
   }
 
   try {
-    if (intent === "import") {
-      const importDataStr = formData.get("importData") || "[]";
-      const importData = JSON.parse(importDataStr);
-
-      for (const item of importData) {
-        const payloadStr = typeof item.payload === "string" ? item.payload : JSON.stringify(item.payload || {});
-        const createResponse = await admin.graphql(
-          `
-          mutation CreateSubmission($metaobject: MetaobjectCreateInput!) {
-              metaobjectCreate(metaobject: $metaobject) {
-                  metaobject { id }
-                  userErrors { field message }
-              }
-          }
-          `,
-          {
-            variables: {
-              metaobject: {
-                type: "$app:submissions",
-                fields: [
-                  { key: "form_id", value: item.formId || "imported" },
-                  { key: "form_name", value: item.formName || "Imported Form" },
-                  { key: "customer_name", value: item.customerName || "Imported Customer" },
-                  { key: "category", value: item.category || "custom" },
-                  { key: "status", value: item.status || "Submitted" },
-                  { key: "payload", value: payloadStr },
-                ],
-              },
-            },
-          }
-        );
-        const createJson = await createResponse.json();
-        const createErrors = createJson.data?.metaobjectCreate?.userErrors;
-        if (createErrors?.length) {
-          return Response.json({ error: createErrors.map((e) => e.message).join(", ") }, { status: 400 });
-        }
-      }
-
-      return Response.json({ success: true, count: importData.length });
-    }
 
     if (intent === "reject") {
       const response = await admin.graphql(
@@ -151,7 +111,7 @@ export const action = async ({ request }) => {
           `,
             {
               variables: {
-                handle: { type: "$app:profile", handle: formId },
+                handle: { type: "$app:forms_data", handle: formId },
               },
             }
           );
@@ -161,8 +121,8 @@ export const action = async ({ request }) => {
             acc[f.key] = f.value;
             return acc;
           }, {});
-          if (formFieldMap.bio) {
-            const bio = JSON.parse(formFieldMap.bio || "{}");
+          if (formFieldMap.data) {
+            const bio = JSON.parse(formFieldMap.data || "{}");
             customerTag = bio.customerTag || "";
           }
         } catch (e) {
@@ -376,46 +336,16 @@ const Submissions = () => {
     );
   };
 
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [importing, setImporting] = useState(false);
-
-  useEffect(() => {
-    if (fetcher.state === "idle" && fetcher.data) {
-      if (fetcher.data.success) {
-        if (fetcher.formData?.get("intent") === "import") {
-          alert(`Successfully imported ${fetcher.data.count} submissions!`);
-          setShowImportModal(false);
-          setImporting(false);
-        }
-      } else if (fetcher.data.error) {
-        if (fetcher.formData?.get("intent") === "import") {
-          alert(`Import failed: ${fetcher.data.error}`);
-          setImporting(false);
-        }
-      }
-    }
-  }, [fetcher.state, fetcher.data]);
-
-
-
   useEffect(() => {
     const modalD = document.getElementById("details-modal");
-    const modalI = document.getElementById("import-modal");
 
     const handleCloseD = () => { setSelectedSubmissionId(null); };
-    const handleCloseI = () => { setShowImportModal(false); };
 
     if (modalD) {
       modalD.addEventListener("close", handleCloseD);
       modalD.addEventListener("hide", handleCloseD);
       modalD.addEventListener("s-hide", handleCloseD);
       modalD.addEventListener("s-close", handleCloseD);
-    }
-    if (modalI) {
-      modalI.addEventListener("close", handleCloseI);
-      modalI.addEventListener("hide", handleCloseI);
-      modalI.addEventListener("s-hide", handleCloseI);
-      modalI.addEventListener("s-close", handleCloseI);
     }
 
     return () => {
@@ -425,14 +355,8 @@ const Submissions = () => {
         modalD.removeEventListener("s-hide", handleCloseD);
         modalD.removeEventListener("s-close", handleCloseD);
       }
-      if (modalI) {
-        modalI.removeEventListener("close", handleCloseI);
-        modalI.removeEventListener("hide", handleCloseI);
-        modalI.removeEventListener("s-hide", handleCloseI);
-        modalI.removeEventListener("s-close", handleCloseI);
-      }
     };
-  }, [selectedSubmissionId, showImportModal]);
+  }, [selectedSubmissionId]);
 
   useEffect(() => {
     const modal = document.getElementById("details-modal");
@@ -452,25 +376,6 @@ const Submissions = () => {
       }
     }
   }, [selectedSubmissionId]);
-
-  useEffect(() => {
-    const modal = document.getElementById("import-modal");
-    if (modal) {
-      if (showImportModal) {
-        if (typeof modal.show === "function") {
-          modal.show();
-        } else {
-          modal.setAttribute("open", "");
-        }
-      } else {
-        if (typeof modal.hide === "function") {
-          modal.hide();
-        } else {
-          modal.removeAttribute("open");
-        }
-      }
-    }
-  }, [showImportModal]);
 
   const handleExport = () => {
     if (filteredSubmissions.length === 0) {
@@ -515,147 +420,6 @@ const Submissions = () => {
     document.body.removeChild(link);
   };
 
-  const triggerFileImport = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json,.csv";
-    input.onchange = (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      setImporting(true);
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const text = e.target.result;
-          let parsed = [];
-
-          const isCSV = file.name.endsWith(".csv") || (!text.trim().startsWith("[") && !text.trim().startsWith("{"));
-
-          if (isCSV) {
-            // Parse CSV
-            const csvLines = [];
-            let row = [""];
-            let inQuotes = false;
-
-            for (let i = 0; i < text.length; i++) {
-              const char = text[i];
-              const nextChar = text[i + 1];
-
-              if (char === '"') {
-                if (inQuotes && nextChar === '"') {
-                  row[row.length - 1] += '"';
-                  i++;
-                } else {
-                  inQuotes = !inQuotes;
-                }
-              } else if (char === ',' && !inQuotes) {
-                row.push('');
-              } else if ((char === '\r' || char === '\n') && !inQuotes) {
-                if (char === '\r' && nextChar === '\n') {
-                  i++;
-                }
-                csvLines.push(row);
-                row = [''];
-              } else {
-                row[row.length - 1] += char;
-              }
-            }
-            if (row.length > 1 || row[0] !== '') {
-              csvLines.push(row);
-            }
-
-            if (csvLines.length < 2) {
-              throw new Error("CSV file is empty or missing data rows.");
-            }
-
-            const headers = csvLines[0].map(h => h.trim());
-
-            // Expected headers: ["Name", "Form Name", "Category", "Status", "Submitted At"]
-            const nameIndex = headers.indexOf("Name");
-            const formNameIndex = headers.indexOf("Form Name");
-            const categoryIndex = headers.indexOf("Category");
-            const statusIndex = headers.indexOf("Status");
-            const submittedAtIndex = headers.indexOf("Submitted At");
-
-            if (nameIndex === -1) {
-              throw new Error("CSV must contain a 'Name' column header.");
-            }
-
-            const payloadHeaders = headers.filter((_, idx) =>
-              idx !== nameIndex &&
-              idx !== formNameIndex &&
-              idx !== categoryIndex &&
-              idx !== statusIndex &&
-              idx !== submittedAtIndex
-            );
-
-            for (let idx = 1; idx < csvLines.length; idx++) {
-              const line = csvLines[idx];
-              if (line.length === 0 || (line.length === 1 && line[0] === "")) continue;
-
-              const customerName = line[nameIndex] || "Imported Customer";
-              const formName = formNameIndex !== -1 ? line[formNameIndex] : "Imported Form";
-              const category = categoryIndex !== -1 ? (line[categoryIndex] || "custom").toLowerCase() : "custom";
-              const status = statusIndex !== -1 ? line[statusIndex] : "Submitted";
-
-              const payload = {};
-              payloadHeaders.forEach(header => {
-                const headerIdx = headers.indexOf(header);
-                if (headerIdx !== -1 && line[headerIdx] !== undefined && line[headerIdx] !== "") {
-                  const val = line[headerIdx];
-                  try {
-                    payload[header] = JSON.parse(val);
-                  } catch (_) {
-                    payload[header] = val;
-                  }
-                }
-              });
-
-              parsed.push({
-                customerName,
-                formName,
-                formId: formName.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-                category: category === "b2b" ? "b2b" : "custom",
-                status,
-                payload
-              });
-            }
-          } else {
-            // Parse JSON
-            parsed = JSON.parse(text);
-
-            if (!Array.isArray(parsed)) {
-              throw new Error("Imported file must contain an array of submission objects.");
-            }
-
-            for (const item of parsed) {
-              if (!item.customerName || !item.payload) {
-                throw new Error("Each submission must have at least 'customerName' and 'payload' properties.");
-              }
-            }
-          }
-
-          if (parsed.length === 0) {
-            throw new Error("No valid submissions found to import.");
-          }
-
-          fetcher.submit(
-            {
-              intent: "import",
-              importData: JSON.stringify(parsed),
-            },
-            { method: "post" }
-          );
-        } catch (err) {
-          alert("Import error: " + err.message);
-          setImporting(false);
-        }
-      };
-      reader.readAsText(file);
-    };
-    input.click();
-  };
 
   return (
     <s-page heading="Submissions" >
@@ -673,9 +437,6 @@ const Submissions = () => {
           <s-heading>Submissions</s-heading>
         </s-stack>
         <s-stack direction="inline" gap="base">
-          <s-button commandFor="import-modal" onClick={() => setShowImportModal(true)}>
-            Import
-          </s-button>
           <s-button onClick={handleExport}>
             Export
           </s-button>
@@ -706,34 +467,40 @@ const Submissions = () => {
         ) : (
           /* Submissions Table with Only Name, Category, Status, Submitted At */
           <s-box>
-            <s-grid gridTemplateColumns="repeat(12, 1fr)" gap="base" padding="base none" >
-              <s-grid-item gridColumn="span 1" gridRow="span 1">
+            <s-stack gap="base" padding="base none">
+              {/* Form Filter Selector (above search) */}
+              <s-stack gap="small" inlineSize="350px" >
+                <s-grid gridTemplateColumns="repeat(12, 1fr)" gap="small" justifyContent="space-between" alignItems="center">
+                  <s-grid-item gridColumn="span 4" >
+                    <s-text tone="subdued">Filter by Form :</s-text>
+                  </s-grid-item>
+                  <s-grid-item gridColumn="span 8" >
+                    <s-select
+                      value={selectedFormFilter}
+                      onChange={(e) => setSelectedFormFilter(e.target.value)}
+                    >
+                      {formNames.map((name) => (
+                        <s-option key={name} value={name}>
+                          {name}
+                        </s-option>
+                      ))}
+                    </s-select>
+                  </s-grid-item>
+                </s-grid>
+              </s-stack>
 
-                <s-stack>
-                  <s-select value={selectedFormFilter}
-                    onChange={(e) => setSelectedFormFilter(e.target.value)}>
-                    {formNames.map((name) => (
-                      <s-option key={name} value={name}>
-                        {name}
-                      </s-option>
-                    ))}
-                  </s-select>
-                </s-stack>
-              </s-grid-item>
-              <s-grid-item gridColumn="span 11" gridRow="span 1">
-
-                <s-stack>
-                  <s-search-field
-                    name="submissionSearch"
-                    placeholder="Search Submission"
-                    value={searchQuery}
-                    onInput={(e) => setSearchQuery(e.currentTarget.value || e.target.value || "")}
-                    onChange={(e) => setSearchQuery(e.currentTarget.value || e.target.value || "")}
-                    inlineSize="fill"
-                  ></s-search-field>
-                </s-stack>
-              </s-grid-item>
-            </s-grid>
+              {/* Search Submission Input */}
+              <s-stack>
+                <s-search-field
+                  name="submissionSearch"
+                  placeholder="Search Submission"
+                  value={searchQuery}
+                  onInput={(e) => setSearchQuery(e.currentTarget.value || e.target.value || "")}
+                  onChange={(e) => setSearchQuery(e.currentTarget.value || e.target.value || "")}
+                  inlineSize="fill"
+                ></s-search-field>
+              </s-stack>
+            </s-stack>
             {/* <s-stack
             padding="base none"
             direction="inline"
@@ -765,6 +532,7 @@ const Submissions = () => {
                 <s-table-body>
                   {filteredSubmissions.map((sub) => (
                     <s-table-row
+                      className="table-row"
                       key={sub.id}
                       onClick={() => setSelectedSubmissionId(sub.id)}
                     >
@@ -933,49 +701,6 @@ const Submissions = () => {
           </s-button>
         </s-modal>
 
-        {/* Import Modal */}
-        <s-modal id="import-modal" heading="Import Submissions" open={showImportModal ? true : undefined}>
-          <s-stack gap="base">
-            <s-text>
-              Upload a CSV file (exported from this app) or a JSON file containing an array of submissions to import.
-            </s-text>
-
-            <s-box padding="base" className="import-upload-zone">
-              <s-stack gap="base" alignItems="center">
-                <s-text tone="subdued">Format example:</s-text>
-                <s-text className="import-format-preview">
-                  {`[
-  {
-    "customerName": "John Doe",
-    "formName": "Contact Us",
-    "formId": "contact-us",
-    "category": "custom",
-    "status": "Submitted",
-    "payload": {
-      "Email": "john@example.com",
-      "Message": "Hello world!"
-    }
-  }
-]`}
-                </s-text>
-
-                <s-button onClick={triggerFileImport}>
-                  Choose JSON File
-                </s-button>
-              </s-stack>
-            </s-box>
-
-            {importing && (
-              <s-stack direction="inline" gap="small" alignItems="center">
-                <s-text fontWeight="semibold">Importing submissions, please wait...</s-text>
-              </s-stack>
-            )}
-          </s-stack>
-
-          <s-button slot="secondary-actions" commandFor="import-modal" command="--hide">
-            Close
-          </s-button>
-        </s-modal>
       </s-section>
     </s-page>
   );

@@ -350,8 +350,7 @@ const tabs = [
   { id: "after-submit", label: "After submit", icon: "cursor" },
   { id: "mail", label: "Mail", icon: "email" },
   { id: "rules", label: "Rules", icon: "filter" },
-  { id: "settings", label: "Settings", icon: "settings" },
-  { id: "translation", label: "Translation", icon: "globe" }
+  { id: "settings", label: "Settings", icon: "settings" }
 ];
 
 // Business/Company singleton field definitions (only one of each allowed per form)
@@ -1265,9 +1264,15 @@ export default function FormBuilder({ config, existingForm = null }) {
           </s-stack>
         </s-stack>
         <s-stack>
-          <s-button variant="primary" onClick={handleContinue}>
-            {isEditing ? "Save changes" : "Continue"}
-          </s-button>
+          {isEditing ? (
+            <s-button variant="primary" onClick={() => navigate(`/app/submissions?formName=${encodeURIComponent(formName)}`)}>
+              Submissions
+            </s-button>
+          ) : (
+            <s-button variant="primary" onClick={handleContinue}>
+              Continue
+            </s-button>
+          )}
         </s-stack>
       </s-stack>
 
@@ -1453,15 +1458,14 @@ export default function FormBuilder({ config, existingForm = null }) {
                                 {!collapsedPages[page.id] && (
                                   <div className="tree-dotted-line">
                                     {pageFields.map((field) => (
-                                      <button
+                                      <s-button
                                         key={field.id}
-                                        type="button"
+                                        inlineSize="fill"
                                         className={`tree-field-item ${selectedFieldId === field.id ? "active" : ""}`}
-                                        style={{ width: "100%", background: "none", border: "none", textAlign: "left", cursor: "pointer" }}
                                         onClick={() => setSelectedFieldId(field.id)}
                                       >
                                         {field.label}
-                                      </button>
+                                      </s-button>
                                     ))}
 
                                     {/* Add element button inside the indent */}
@@ -1587,16 +1591,16 @@ export default function FormBuilder({ config, existingForm = null }) {
                               details="Header displayed at the top of the form"
                             />
 
-                            <s-textarea
+                            <s-text-area
                               label="Form description"
                               value={formDescription}
                               onChange={(e) => {
                                 handleFieldInput();
                                 setFormDescription(e.currentTarget.value);
                               }}
-                              rows={5}
+                              rows={4}
                               placeholder="Short text below the form title"
-                            />
+                            ></s-text-area>
                           </s-stack>
                         </s-stack>
                       </s-section>
@@ -1620,7 +1624,7 @@ export default function FormBuilder({ config, existingForm = null }) {
 
                           <s-stack gap="base">
                             {/* Rich text / Description block */}
-                            <s-textarea
+                            <s-text-area
                               label="Text"
                               value={footerText}
                               onChange={(e) => {
@@ -1629,7 +1633,7 @@ export default function FormBuilder({ config, existingForm = null }) {
                               }}
                               rows={4}
                               placeholder="Write any footer text or instructions here"
-                            />
+                            ></s-text-area>
 
                             {/* Previous button text input */}
                             <s-text-field
@@ -3141,13 +3145,13 @@ export default function FormBuilder({ config, existingForm = null }) {
                             onChange={(e) => updateTranslation(selectedLanguage, "headerTitle", e.currentTarget.value)}
                           />
 
-                          <s-textarea
+                          <s-text-area
                             label="Description"
                             value={translations[selectedLanguage]?.description || ""}
                             placeholder={`Original: ${formDescription}`}
                             onChange={(e) => updateTranslation(selectedLanguage, "description", e.currentTarget.value)}
                             rows={3}
-                          />
+                          ></s-text-area>
 
                           <s-stack gap="small" style={{ marginTop: "4px" }}>
                             <s-text-field
@@ -3682,16 +3686,6 @@ export default function FormBuilder({ config, existingForm = null }) {
                                 >
                                   {isCompleted ? "✓" : page.id}
                                 </div>
-                                <span
-                                  style={{
-                                    fontSize: "11px",
-                                    marginTop: "4px",
-                                    color: isActive ? primaryColor : "#6d7175",
-                                    fontWeight: isActive ? "600" : "450",
-                                  }}
-                                >
-                                  {page.title}
-                                </span>
                               </div>
                             );
                           })}
@@ -3710,21 +3704,13 @@ export default function FormBuilder({ config, existingForm = null }) {
 
                         return (
                           <div key={page.id} style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
-                            {multiPageLayout === "vertical" && pages.length > 1 && (
+                            {multiPageLayout === "vertical" && pages.length > 1 && page.id > 1 && (
                               <div style={{
-                                padding: "12px 16px",
-                                background: "#f6f6f7",
-                                borderLeft: `4px solid ${primaryColor}`,
-                                borderRadius: "4px",
-                                marginTop: page.id > 1 ? "24px" : "8px",
-                                marginBottom: "8px",
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center"
-                              }}>
-                                <span style={{ fontWeight: "600", fontSize: "14px", color: "#202223" }}>{page.title}</span>
-                                <span style={{ fontSize: "11px", color: "#6d7175", textTransform: "uppercase", fontWeight: "600" }}>Step {page.id} of {pages.length}</span>
-                              </div>
+                                borderTop: "1px dashed #e1e3e5",
+                                marginTop: "16px",
+                                marginBottom: "16px",
+                                width: "100%"
+                              }} />
                             )}
                             <div
                               style={{

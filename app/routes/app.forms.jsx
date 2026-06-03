@@ -27,7 +27,7 @@ export const loader = async ({ request }) => {
   try {
     const response = await admin.graphql(`
             query GetForms {
-                metaobjects(type: "$app:profile", first: 50, sortKey: "updated_at", reverse: true) {
+                metaobjects(type: "$app:forms_data", first: 50, sortKey: "updated_at", reverse: true) {
                     nodes {
                         id
                         handle
@@ -52,15 +52,18 @@ export const loader = async ({ request }) => {
     forms = nodes.map((node) => {
       const allFields = fieldsToRecord(node.fields);
 
+      let parsedData = {};
+      try {
+        parsedData = JSON.parse(allFields.data || "{}");
+      } catch (_) { }
+
       return {
         id: node.id,
         formId: node.handle,
         createdAt: node.updatedAt,
-        // All metaobject fields (full_name, email, role, bio, active, rating, …)
         fields: allFields,
-        // Table columns only
-        name: getFieldValue(node.fields, "full_name") || "Untitled Form",
-        category: parseFormCategory(allFields.bio, allFields.role),
+        name: parsedData.formName || parsedData.headerTitle || "Untitled Form",
+        category: parseFormCategory(allFields.data, allFields.form),
       };
     });
   } catch (err) {
@@ -196,7 +199,9 @@ const Forms = () => {
                   const display = getCategoryDisplay(form.category);
 
                   return (
+
                     <s-table-row
+                      className="table-row"
                       key={form.id}
                       onClick={() =>
                         navigate(
@@ -206,17 +211,17 @@ const Forms = () => {
                         )
                       }
                     >
+
                       <s-table-cell>
-                        <s-clickable type="button">
-                          <s-stack
-                            direction="inline"
-                            gap="small"
-                            alignItems="center"
-                          >
-                            {/* <s-icon source="file" /> */}
-                            <s-text fontWeight="semibold">{form.name}</s-text>
-                          </s-stack>
-                        </s-clickable>
+                        <s-stack
+                          direction="inline"
+                          gap="small"
+                          alignItems="center"
+                        >
+                          <s-button variant="tertiary" >
+                            {form.name}
+                          </s-button>
+                        </s-stack>
                       </s-table-cell>
 
                       <s-table-cell>
@@ -241,20 +246,7 @@ const Forms = () => {
                               className="copy-id-btn"
                               title="Copy Form ID"
                             >
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="display-block"
-                              >
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                              </svg>
+                              <s-icon type="clipboard" />
                             </s-button>
                           )}
                         </s-stack>
@@ -271,32 +263,15 @@ const Forms = () => {
                       </s-table-cell>
 
                       <s-table-cell>
-                        <s-clickable
-                          type="button"
-                          onClick={(e) => {
+                        <s-stack direction="inline" gap="small" alignItems="center">
+                          <s-button variant="tertiary" onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/app/submissions?formName=${encodeURIComponent(form.name)}`);
-                          }}
-                        >
-                          <s-stack direction="inline" gap="small" alignItems="center">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.0"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="view-icon"
-                            >
-                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                              <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
+                          }}>
+                            <s-icon type="view" />
                             <s-text tone="subdued">View</s-text>
-                          </s-stack>
-                        </s-clickable>
+                          </s-button>
+                        </s-stack>
                       </s-table-cell>
                     </s-table-row>
                   );

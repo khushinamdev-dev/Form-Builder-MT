@@ -798,7 +798,7 @@
 }
 
 /* Regular fields: 3-column grid */
-.modal-category > div:not(.biz-items-grid) {
+.modal-category>div:not(.biz-items-grid) {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
@@ -864,9 +864,10 @@
 }
 
 @media (max-width: 700px) {
-  .modal-category > div:not(.biz-items-grid) {
+  .modal-category>div:not(.biz-items-grid) {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .biz-items-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1579,4 +1580,8 @@ textarea.field-preview-input {
 .variable-chip-label {
   font-size: 10.5px;
   color: #6d7175;
+}
+
+.table-row {
+  cursor: pointer;
 }

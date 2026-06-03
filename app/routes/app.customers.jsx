@@ -3,7 +3,7 @@ import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
-  
+
   let b2bCustomers = [];
   let errors = [];
 
@@ -45,7 +45,7 @@ export const loader = async ({ request }) => {
         let payload = {};
         try {
           payload = JSON.parse(fields.payload || "{}");
-        } catch (_) {}
+        } catch (_) { }
 
         const email = payload["Email"] || payload["Email Address"] || payload["email"] || "—";
         const phone = payload["Phone"] || payload["Phone Number"] || payload["phone"] || "—";
@@ -130,7 +130,7 @@ const Customers = () => {
               <s-table-body>
                 {b2bCustomers.map((cust) => {
                   return (
-                    <s-table-row key={cust.id}>
+                    <s-table-row key={cust.id} className="table-row" >
                       <s-table-cell>
                         <s-text fontWeight="semibold">{cust.name}</s-text>
                       </s-table-cell>

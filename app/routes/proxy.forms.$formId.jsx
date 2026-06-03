@@ -83,7 +83,7 @@ async function loadFormMetaobject(admin, formId) {
     `,
     {
       variables: {
-        handle: { type: "$app:profile", handle: formId },
+        handle: { type: "$app:forms_data", handle: formId },
       },
     },
   );
@@ -105,17 +105,13 @@ function buildFormPayload(metaobject) {
 
   let config = {};
   try {
-    config = JSON.parse(fieldMap.bio || "{}");
+    config = JSON.parse(fieldMap.data || "{}");
   } catch (_) {}
-
-  if (fieldMap.active === "false") {
-    return { error: "This form is not active", status: 403 };
-  }
 
   return {
     data: {
       id: metaobject.handle,
-      title: config.headerTitle || fieldMap.full_name || "Form",
+      title: config.formName || config.headerTitle || "Form",
       description: config.description || "",
       primaryColor: config.primaryColor || "#008060",
       afterSubmitAction: config.afterSubmitAction || "successful",
@@ -456,8 +452,13 @@ export const action = async ({ request, params }) => {
       return acc;
     }, {});
 
-    const formName = fields.full_name || "Untitled Form";
-    const category = parseFormCategory(fields.bio, fields.role);
+    let config = {};
+    try {
+      config = JSON.parse(fields.data || "{}");
+    } catch (_) {}
+
+    const formName = config.formName || config.headerTitle || "Untitled Form";
+    const category = parseFormCategory(fields.data, fields.form);
     const customerName =
       payload["Name"] ||
       payload["Full Name"] ||
@@ -468,10 +469,6 @@ export const action = async ({ request, params }) => {
     const emailKey = Object.keys(payload).find(k => k.toLowerCase() === "email" || k.toLowerCase().includes("email"));
     const customerEmail = emailKey ? payload[emailKey] : null;
 
-    let config = {};
-    try {
-      config = JSON.parse(fields.bio || "{}");
-    } catch (_) {}
     const storeName = config.headerTitle || formName || "Our Store";
 
     await admin.graphql(

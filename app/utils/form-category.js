@@ -3,23 +3,23 @@ export const FORM_CATEGORIES = {
     custom: { label: "Custom", background: "#f0fdf4", color: "#047857" },
 };
 
-/** Resolve b2b | custom from metaobject bio JSON or role field fallback. */
-export function parseFormCategory(bioValue, roleValue) {
-    if (bioValue) {
+/** Resolve b2b | custom from metaobject data JSON or form field fallback. */
+export function parseFormCategory(dataValue, formValue) {
+    if (dataValue) {
         try {
-            const bio = JSON.parse(bioValue);
-            if (bio.category === "b2b" || bio.category === "custom") {
-                return bio.category;
+            const data = JSON.parse(dataValue);
+            if (data.category === "b2b" || data.category === "custom") {
+                return data.category;
             }
-        } catch (_) {}
+        } catch (_) { }
     }
 
-    const role = (roleValue || "").toLowerCase();
+    const form = (formValue || "").toLowerCase();
     if (
-        role.includes("wholesale") ||
-        role.includes("retailer") ||
-        role.includes("supplier") ||
-        role.includes("vendor")
+        form.includes("wholesale") ||
+        form.includes("retailer") ||
+        form.includes("supplier") ||
+        form.includes("vendor")
     ) {
         return "b2b";
     }

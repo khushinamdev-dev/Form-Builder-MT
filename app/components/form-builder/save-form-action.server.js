@@ -60,6 +60,7 @@ export async function saveFormAction({ request }) {
     } catch (_) {}
 
     const bioContent = JSON.stringify({
+        formName,
         description: formDescription,
         headerTitle: formHeaderTitle,
         category: formCategory,
@@ -117,15 +118,11 @@ export async function saveFormAction({ request }) {
     `,
         {
             variables: {
-                handle: { type: "$app:profile", handle: formId },
+                handle: { type: "$app:forms_data", handle: formId },
                 metaobject: {
                     fields: [
-                        { key: "full_name", value: formName },
-                        { key: "email", value: "form@app.local" },
-                        { key: "role", value: formRole },
-                        { key: "bio", value: bioContent },
-                        { key: "active", value: "true" },
-                        { key: "rating", value: "5" },
+                        { key: "form", value: formRole },
+                        { key: "data", value: bioContent },
                     ],
                 },
             },
